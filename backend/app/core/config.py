@@ -6,6 +6,11 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql://postgres:postgres@postgres:5432/ai_knowledge_workspace"
 
+    jwt_secret_key: str = "change-me-in-production"
+    jwt_refresh_secret_key: str = "change-me-refresh-in-production"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+
     @property
     def async_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+psycopg2://")
