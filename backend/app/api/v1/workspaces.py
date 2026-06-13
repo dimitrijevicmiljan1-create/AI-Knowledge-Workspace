@@ -13,6 +13,8 @@ from app.schemas.workspace import (
     WorkspaceStatsResponse,
     WorkspaceUpdate,
 )
+from app.schemas.upload import WorkspaceFileListResponse
+from app.services.file_upload_service import FileUploadService
 from app.services.workspace_service import WorkspaceService
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
@@ -143,3 +145,38 @@ def get_workspace_stats(
     current_user: User = Depends(get_current_active_user),
 ) -> WorkspaceStatsResponse:
     return WorkspaceService(db).get_workspace_stats(current_user, workspace_id)
+
+
+@router.get(
+    "/{workspace_id}/files",
+    response_model=WorkspaceFileListResponse,
+    summary="List workspace uploaded files",
+    responses={
+        404: {"description": "Workspace not found"},
+        403: {"description": "User is not the workspace owner"},
+        200: {
+            "description": "Workspace file listing",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "items": [
+                            {
+                                "document_id": "3fa85f64-5717-4562-b3fc-2c963f66afa8",
+                                "filename": "notes.md",
+                                "size": 2048,
+                                "uploaded_at": "2026-06-13T12:00:00Z",
+                            }
+                        ],
+                        "total": 1,
+                    }
+                }
+            },
+        },
+    },
+)
+def list_workspace_files(
+    workspace_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> WorkspaceFileListResponse:
+    return FileUploadService(db).list_files(current_user, workspace_id)

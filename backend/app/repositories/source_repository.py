@@ -36,6 +36,13 @@ class SourceRepository:
     def get_by_id(self, source_id: uuid.UUID) -> Source | None:
         return self.db.get(Source, source_id)
 
+    def get_local_files_source(self, workspace_id: uuid.UUID) -> Source | None:
+        statement = select(Source).where(
+            Source.workspace_id == workspace_id,
+            Source.source_type == SourceType.local_files,
+        )
+        return self.db.scalar(statement)
+
     def list_by_workspace(self, workspace_id: uuid.UUID) -> list[Source]:
         statement = (
             select(Source)
