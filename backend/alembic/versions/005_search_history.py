@@ -1,7 +1,7 @@
 """Add search history table.
 
 Revision ID: 005
-Revises: 004
+Revises: 00260ac0f411
 Create Date: 2026-06-13
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "005"
-down_revision: Union[str, None] = "004"
+down_revision: Union[str, None] = "00260ac0f411"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
