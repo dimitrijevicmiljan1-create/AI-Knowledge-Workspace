@@ -36,6 +36,21 @@ class DocumentRepository:
     def get_by_id(self, document_id: uuid.UUID) -> Document | None:
         return self.db.get(Document, document_id)
 
+    def get_by_source_and_checksum(self, source_id: uuid.UUID, checksum: str) -> Document | None:
+        statement = select(Document).where(
+            Document.source_id == source_id,
+            Document.checksum == checksum,
+        )
+        return self.db.scalar(statement)
+
+    def list_uploaded_files(self, source_id: uuid.UUID) -> list[Document]:
+        statement = (
+            select(Document)
+            .where(Document.source_id == source_id)
+            .order_by(Document.created_at.desc())
+        )
+        return list(self.db.scalars(statement).all())
+
     def get_by_source_and_path(self, source_id: uuid.UUID, path: str) -> Document | None:
         statement = select(Document).where(
             Document.source_id == source_id,

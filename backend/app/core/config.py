@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     ingestion_chunk_size: int = 1000
     ingestion_chunk_overlap: int = 100
 
+    storage_upload_path: str = "storage/uploads"
+    max_upload_size_bytes: int = 20 * 1024 * 1024
+
     @property
     def async_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+psycopg2://")
