@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     ingestion_chunk_size: int = 1000
     ingestion_chunk_overlap: int = 100
 
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
+    default_chunk_strategy: str = "recursive"
+
     storage_upload_path: str = "storage/uploads"
     max_upload_size_bytes: int = 20 * 1024 * 1024
 

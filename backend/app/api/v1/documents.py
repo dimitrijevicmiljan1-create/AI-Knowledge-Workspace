@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_active_user
 from app.db.session import get_db
 from app.models.user import User
+from app.schemas.chunk import ChunkOperationResponse, ChunkRequest, ChunkStatsResponse
 from app.schemas.document import (
     ChunkListResponse,
     DocumentIngestRequest,
@@ -15,6 +16,7 @@ from app.schemas.document import (
     DocumentStatsResponse,
     DocumentUpdate,
 )
+from app.services.chunk_service import ChunkService
 from app.services.document_service import DocumentService
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -160,7 +162,98 @@ def list_document_chunks(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> ChunkListResponse:
-    return DocumentService(db).list_chunks(current_user, document_id)
+    return ChunkService(db).list_chunks(current_user, document_id)
+
+
+@router.post(
+    "/{document_id}/chunk",
+    response_model=ChunkOperationResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Chunk document text",
+    responses={
+        201: {"description": "Document chunked successfully"},
+        409: {"description": "Document already has chunks"},
+        403: {"description": "User is not the workspace owner"},
+        404: {"description": "Document not found"},
+        422: {"description": "Text extraction or chunking failed"},
+    },
+)
+def chunk_document(
+    document_id: UUID,
+    chunk_request: ChunkRequest | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> ChunkOperationResponse:
+    return ChunkService(db).chunk_document(current_user, document_id, chunk_request)
+
+
+@router.post(
+    "/{document_id}/rechunk",
+    response_model=ChunkOperationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Rechunk document text",
+    responses={
+        200: {"description": "Document rechunked successfully"},
+        403: {"description": "User is not the workspace owner"},
+        404: {"description": "Document not found"},
+        422: {"description": "Text extraction or chunking failed"},
+    },
+)
+def rechunk_document(
+    document_id: UUID,
+    chunk_request: ChunkRequest | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> ChunkOperationResponse:
+    return ChunkService(db).rechunk_document(current_user, document_id, chunk_request)
+
+
+@router.delete(
+    "/{document_id}/chunks",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete document chunks",
+    responses={
+        404: {"description": "Document not found"},
+        403: {"description": "User is not the workspace owner"},
+    },
+)
+def delete_document_chunks(
+    document_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> Response:
+    ChunkService(db).delete_chunks(current_user, document_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    "/{document_id}/chunk-stats",
+    response_model=ChunkStatsResponse,
+    summary="Get document chunk statistics",
+    responses={
+        404: {"description": "Document not found"},
+        403: {"description": "User is not the workspace owner"},
+        200: {
+            "description": "Chunk statistics",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "document_id": "3fa85f64-5717-4562-b3fc-2c963f66afa8",
+                        "total_chunks": 5,
+                        "total_tokens": 420,
+                        "avg_chunk_size": 84.0,
+                    }
+                }
+            },
+        },
+    },
+)
+def get_document_chunk_stats(
+    document_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> ChunkStatsResponse:
+    return ChunkService(db).get_chunk_stats(current_user, document_id)
 
 
 @router.get(
