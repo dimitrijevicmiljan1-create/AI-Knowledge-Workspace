@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     search_default_top_k: int = 5
     search_max_top_k: int = 50
     search_recent_days: int = 7
+    search_min_similarity: float = 0.70
+
+    openai_chat_model: str = "gpt-4.1-mini"
 
     @property
     def async_database_url(self) -> str:
