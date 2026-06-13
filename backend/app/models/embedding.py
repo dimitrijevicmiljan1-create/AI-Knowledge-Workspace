@@ -28,6 +28,6 @@ class Embedding(Base, CreatedAtMixin):
         unique=True,
         index=True,
     )
-    vector: Mapped[list[float]] = mapped_column(Vector(768), nullable=False)
+    vector: Mapped[list[float]] = mapped_column(Vector(1536), nullable=False)
 
     chunk: Mapped["Chunk"] = relationship("Chunk", back_populates="embedding")
