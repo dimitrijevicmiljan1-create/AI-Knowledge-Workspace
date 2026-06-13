@@ -32,10 +32,23 @@ class ChunkRepository:
             self.db.refresh(chunk)
         return created_chunks
 
+    def get_by_id(self, chunk_id: uuid.UUID) -> Chunk | None:
+        return self.db.get(Chunk, chunk_id)
+
     def delete_by_document(self, document_id: uuid.UUID) -> None:
         statement = delete(Chunk).where(Chunk.document_id == document_id)
         self.db.execute(statement)
         self.db.commit()
+
+    def count_by_document(self, document_id: uuid.UUID) -> int:
+        statement = select(func.count()).select_from(Chunk).where(Chunk.document_id == document_id)
+        return self.db.scalar(statement) or 0
+
+    def sum_tokens_by_document(self, document_id: uuid.UUID) -> int:
+        statement = select(func.coalesce(func.sum(Chunk.token_count), 0)).where(
+            Chunk.document_id == document_id
+        )
+        return int(self.db.scalar(statement) or 0)
 
     def list_by_document(self, document_id: uuid.UUID) -> list[Chunk]:
         statement = (
@@ -44,7 +57,3 @@ class ChunkRepository:
             .order_by(Chunk.chunk_index.asc())
         )
         return list(self.db.scalars(statement).all())
-
-    def count_by_document(self, document_id: uuid.UUID) -> int:
-        statement = select(func.count()).select_from(Chunk).where(Chunk.document_id == document_id)
-        return self.db.scalar(statement) or 0
