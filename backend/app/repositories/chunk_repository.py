@@ -48,3 +48,51 @@ class ChunkRepository:
     def count_by_document(self, document_id: uuid.UUID) -> int:
         statement = select(func.count()).select_from(Chunk).where(Chunk.document_id == document_id)
         return self.db.scalar(statement) or 0
+
+    def get_by_id(self, chunk_id: uuid.UUID) -> Chunk | None:
+        return self.db.get(Chunk, chunk_id)
+
+    def list_unembedded_by_document(
+        self,
+        document_id: uuid.UUID,
+        *,
+        embedding_model: str | None = None,
+    ) -> list[Chunk]:
+        from app.models.embedding import Embedding
+
+        statement = (
+            select(Chunk)
+            .outerjoin(Embedding, Chunk.id == Embedding.chunk_id)
+            .where(Chunk.document_id == document_id, Embedding.id.is_(None))
+            .order_by(Chunk.chunk_index.asc())
+        )
+        if embedding_model is not None:
+            statement = statement.where(
+                (Chunk.embedding_model.is_(None)) | (Chunk.embedding_model != embedding_model)
+            )
+        return list(self.db.scalars(statement).all())
+
+    def list_by_document_ids(self, document_ids: list[uuid.UUID]) -> list[Chunk]:
+        if not document_ids:
+            return []
+        statement = (
+            select(Chunk)
+            .where(Chunk.document_id.in_(document_ids))
+            .order_by(Chunk.document_id.asc(), Chunk.chunk_index.asc())
+        )
+        return list(self.db.scalars(statement).all())
+
+    def update_embedding_model(self, chunk: Chunk, embedding_model: str) -> Chunk:
+        chunk.embedding_model = embedding_model
+        self.db.commit()
+        self.db.refresh(chunk)
+        return chunk
+
+    def update_embedding_models(self, chunk_ids: list[uuid.UUID], embedding_model: str) -> None:
+        if not chunk_ids:
+            return
+        statement = select(Chunk).where(Chunk.id.in_(chunk_ids))
+        chunks = self.db.scalars(statement).all()
+        for chunk in chunks:
+            chunk.embedding_model = embedding_model
+        self.db.commit()

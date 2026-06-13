@@ -85,3 +85,14 @@ class DocumentRepository:
     def count_by_source(self, source_id: uuid.UUID) -> int:
         statement = select(func.count()).select_from(Document).where(Document.source_id == source_id)
         return self.db.scalar(statement) or 0
+
+    def list_by_workspace(self, workspace_id: uuid.UUID) -> list[Document]:
+        from app.models.source import Source
+
+        statement = (
+            select(Document)
+            .join(Source, Document.source_id == Source.id)
+            .where(Source.workspace_id == workspace_id)
+            .order_by(Document.created_at.desc())
+        )
+        return list(self.db.scalars(statement).all())
