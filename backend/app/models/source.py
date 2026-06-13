@@ -22,6 +22,13 @@ class SourceType(str, enum.Enum):
     manual = "manual"
 
 
+class SourceStatus(str, enum.Enum):
+    pending = "pending"
+    ready = "ready"
+    syncing = "syncing"
+    failed = "failed"
+
+
 class Source(Base, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = "sources"
 
@@ -42,6 +49,11 @@ class Source(Base, CreatedAtMixin, UpdatedAtMixin):
         nullable=False,
     )
     config: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    status: Mapped[SourceStatus] = mapped_column(
+        Enum(SourceStatus, name="source_status", native_enum=False),
+        nullable=False,
+        default=SourceStatus.pending,
+    )
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     workspace: Mapped["Workspace"] = relationship("Workspace", back_populates="sources")
