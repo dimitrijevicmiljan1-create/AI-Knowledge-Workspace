@@ -1,3 +1,4 @@
+from app.models.chat_exchange import ChatExchange
 from app.models.chat_message import ChatMessage, MessageRole
 from app.models.chat_session import ChatSession
 from app.models.chunk import Chunk
@@ -9,6 +10,7 @@ from app.models.user import User
 from app.models.workspace import Workspace
 
 __all__ = [
+    "ChatExchange",
     "ChatMessage",
     "ChatSession",
     "Chunk",
