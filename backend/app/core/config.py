@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
+    ingestion_chunk_size: int = 1000
+    ingestion_chunk_overlap: int = 100
+
     @property
     def async_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+psycopg2://")
