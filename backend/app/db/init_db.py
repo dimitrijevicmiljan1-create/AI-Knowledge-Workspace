@@ -6,6 +6,7 @@ from app.models import (  # noqa: F401
     Chunk,
     Document,
     Embedding,
+    SearchHistory,
     Source,
     User,
     Workspace,

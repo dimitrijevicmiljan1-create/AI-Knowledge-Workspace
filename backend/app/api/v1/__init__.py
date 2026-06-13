@@ -4,6 +4,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.chunks import router as chunks_router
 from app.api.v1.documents import router as documents_router
 from app.api.v1.embeddings import router as embeddings_router
+from app.api.v1.search import router as search_router
 from app.api.v1.sources import router as sources_router
 from app.api.v1.uploads import router as uploads_router
 from app.api.v1.users import router as users_router
@@ -17,4 +18,5 @@ api_router.include_router(sources_router)
 api_router.include_router(documents_router)
 api_router.include_router(chunks_router)
 api_router.include_router(embeddings_router)
+api_router.include_router(search_router)
 api_router.include_router(uploads_router)

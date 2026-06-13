@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     embedding_max_retries: int = 3
     embedding_cost_per_million_tokens: float = 0.02
 
+    search_default_top_k: int = 5
+    search_max_top_k: int = 50
+    search_recent_days: int = 7
+
     @property
     def async_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+psycopg2://")
