@@ -1,0 +1,46 @@
+---
+description: Global UI/UX design system for all frontend phases of AI Knowledge Workspace
+globs:
+  - frontend/**
+alwaysApply: false
+---
+
+# Frontend Design System (Mandatory)
+
+When working on any frontend code in `frontend/`, you MUST follow the global design system.
+
+**Read first:** `docs/DESIGN_SYSTEM.md`
+
+## Non-negotiable rules
+
+1. **No page-specific styles.** Reuse tokens from `frontend/src/app/globals.css`.
+2. **Dark-first UI.** Near-black backgrounds, purple accent (`#8B5CF6`), Inter font.
+3. **Layout:** Sidebar → Header → Content (`max-w-7xl`). Use `AppShell`.
+4. **Components:** shadcn/ui + Tailwind + Lucide icons. Add components via shadcn CLI.
+5. **Animations:** Framer Motion presets in `frontend/src/lib/motion.ts`. 200–300ms, professional.
+6. **Loading:** Skeleton loaders, not spinners.
+7. **Empty states:** Use `@/components/ui/empty-state`.
+8. **Cards:** `rounded-2xl`, subtle borders, hover elevation via `@/components/ui/card`.
+9. **Buttons:** Primary = purple, Secondary = dark, Ghost = minimal. Use `@/components/ui/button`.
+10. **Mobile:** Sidebar drawer on small screens. No horizontal scroll.
+11. **Data fetching:** TanStack Query via `AppProviders`.
+12. **Production:** No mock data — real APIs only. See `production-application.mdc`.
+
+## Token reference (do not hardcode)
+
+- Background: `#0A0A0A` → `bg-background`
+- Secondary: `#111111` → `bg-secondary`, `bg-sidebar`
+- Card: `#18181B` → `bg-card`
+- Border: `#27272A` → `border-border`
+- Text secondary: `#A1A1AA` → `text-text-secondary`
+- Muted: `#71717A` → `text-muted-foreground`
+- Primary: `#8B5CF6` → `bg-primary`
+- Primary hover: `#7C3AED` → `hover:bg-primary-hover`
+
+## Before shipping UI
+
+- [ ] Uses design tokens (no arbitrary colors)
+- [ ] Matches existing layout shell
+- [ ] Responsive (mobile drawer sidebar)
+- [ ] Animations use `lib/motion.ts` presets
+- [ ] Loading/empty states follow patterns

@@ -1,12 +1,43 @@
-export default function HomePage() {
+import type { Metadata } from "next";
+
+import { Cta } from "@/components/landing/cta";
+import { Features } from "@/components/landing/features";
+import { Footer } from "@/components/landing/footer";
+import { Hero } from "@/components/landing/hero";
+import { Integrations } from "@/components/landing/integrations";
+import { PublicNavbar } from "@/components/layout/public-navbar";
+
+const title = "AI Knowledge Workspace — Searchable, Chatable, Intelligent";
+const description =
+  "Connect GitHub repositories, Obsidian vaults and documents. Search everything instantly and chat with your knowledge using AI.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    type: "website",
+    siteName: "AI Knowledge Workspace",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
+};
+
+export default function LandingPage() {
   return (
-    <section className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight">Welcome</h2>
-      <p className="max-w-2xl text-muted-foreground">
-        AI Knowledge Workspace is a SaaS platform for organizing and querying
-        knowledge with AI. This is the Phase 01 foundation — only architecture
-        and infrastructure are in place.
-      </p>
-    </section>
+    <div className="flex min-h-screen flex-col bg-background">
+      <PublicNavbar />
+      <main>
+        <Hero />
+        <Features />
+        <Integrations />
+        <Cta />
+      </main>
+      <Footer />
+    </div>
   );
 }
