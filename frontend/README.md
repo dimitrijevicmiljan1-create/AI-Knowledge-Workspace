@@ -6,12 +6,15 @@ Next.js 15 application for the AI Knowledge Workspace SaaS platform.
 
 All UI must follow the global design system. See [../docs/DESIGN_SYSTEM.md](../docs/DESIGN_SYSTEM.md).
 
-Key files:
+## Production Rules
 
-- `src/app/globals.css` — Color tokens and theme
-- `src/lib/motion.ts` — Framer Motion animation presets
-- `src/components/ui/` — shadcn/ui components
-- `src/components/layout/` — App shell, sidebar, header
+This is a production SaaS application. **Do not use mock or placeholder data.**
+
+- All UI must consume real backend APIs via `src/lib/api/`
+- Show empty states when data is unavailable
+- Never generate artificial content
+
+See [../docs/DESIGN_SYSTEM.md](../docs/DESIGN_SYSTEM.md#production-application-rules) and `.cursor/rules/production-application.mdc`.
 
 ## Stack
 

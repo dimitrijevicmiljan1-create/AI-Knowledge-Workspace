@@ -1,0 +1,45 @@
+---
+description: Production application rules — no mock data, real API consumption only
+globs:
+  - frontend/**
+alwaysApply: false
+---
+
+# Production Application Rules (Mandatory)
+
+This application is intended for **real users**. Treat every frontend change as production SaaS work.
+
+## Do NOT create
+
+- Mock data
+- Fake repositories
+- Fake workspaces
+- Placeholder documents
+- Demo conversations
+- Sample statistics
+- Hardcoded example emails, names, or counts (e.g. `Jane Developer`, `you@company.com`, `—`)
+- Marketing feature cards that imply data exists when it does not
+
+## Required behavior
+
+1. **All UI must consume real backend APIs** via `frontend/src/lib/api/`.
+2. **Use TanStack Query** hooks for server state (`useAuth`, `useWorkspaces`, etc.).
+3. **If backend data is unavailable**, show proper empty states via `@/components/ui/empty-state`.
+4. **If the user is unauthenticated**, show sign-in prompts — not fake content.
+5. **If an API request fails**, show the error message — do not fall back to fabricated data.
+6. **Loading states** use `@/components/ui/skeleton` only while real requests are in flight.
+
+## API layer
+
+- Client: `frontend/src/lib/api/client.ts`
+- Auth: `frontend/src/lib/api/auth.ts`
+- Workspaces: `frontend/src/lib/api/workspaces.ts`
+- Config: `NEXT_PUBLIC_API_URL` environment variable
+
+## Before shipping UI
+
+- [ ] No hardcoded or fabricated data in components
+- [ ] Data fetched from backend APIs
+- [ ] Empty states for zero results
+- [ ] Error states for failed requests
+- [ ] Auth-gated views handle signed-out and expired sessions

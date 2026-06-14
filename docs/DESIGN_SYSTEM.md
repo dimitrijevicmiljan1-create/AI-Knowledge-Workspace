@@ -225,6 +225,23 @@ Every future frontend phase must reuse:
 
 ---
 
+## Production Application Rules
+
+This is a **production SaaS application** for real users.
+
+**Do NOT create:** mock data, fake repositories, fake workspaces, placeholder documents, demo conversations, or sample statistics.
+
+**Required:**
+
+- All UI consumes real backend APIs (`frontend/src/lib/api/`)
+- TanStack Query for server state
+- Proper empty states when data is unavailable
+- Error states when API requests fail — never fall back to fabricated content
+
+See `.cursor/rules/production-application.mdc` for full rules.
+
+---
+
 ## Adding New UI
 
 1. Check if a shadcn component exists — add via CLI if not

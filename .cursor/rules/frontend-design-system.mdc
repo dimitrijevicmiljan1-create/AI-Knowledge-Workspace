@@ -24,6 +24,7 @@ When working on any frontend code in `frontend/`, you MUST follow the global des
 9. **Buttons:** Primary = purple, Secondary = dark, Ghost = minimal. Use `@/components/ui/button`.
 10. **Mobile:** Sidebar drawer on small screens. No horizontal scroll.
 11. **Data fetching:** TanStack Query via `AppProviders`.
+12. **Production:** No mock data — real APIs only. See `production-application.mdc`.
 
 ## Token reference (do not hardcode)
 
