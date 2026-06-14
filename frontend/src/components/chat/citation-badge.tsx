@@ -6,6 +6,7 @@ export type Citation = {
   id: string;
   documentTitle: string;
   filePath?: string | null;
+  repositoryName?: string | null;
 };
 
 export function CitationBadge({
@@ -22,7 +23,11 @@ export function CitationBadge({
         "inline-flex max-w-full items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/10 px-2 py-1 text-left text-xs text-primary transition-colors hover:bg-primary/15",
         className,
       )}
-      title={citation.filePath ?? citation.documentTitle}
+      title={
+        citation.filePath ??
+        citation.repositoryName ??
+        citation.documentTitle
+      }
     >
       <Quote className="size-3 shrink-0" aria-hidden="true" />
       <span className="truncate">{citation.documentTitle}</span>
