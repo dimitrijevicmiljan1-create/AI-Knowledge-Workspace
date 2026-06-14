@@ -77,7 +77,7 @@ export function OnboardingForm() {
         </p>
       </div>
 
-      <Card>
+      <Card className="border-border/80 bg-elevated/90">
         <CardHeader>
           <CardTitle>Workspace details</CardTitle>
           <CardDescription>

@@ -1,8 +1,8 @@
 import { AuthGuard } from "@/components/auth/auth-guard";
-import { AppShell } from "@/components/layout/app-shell";
 import { OnboardingRedirect } from "@/components/auth/onboarding-redirect";
+import { AppShell } from "@/components/layout/app-shell";
 
-export default function DashboardLayout({
+export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;

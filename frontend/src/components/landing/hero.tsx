@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
+    <section className="relative overflow-hidden px-4 pb-8 pt-16 sm:px-6 sm:pt-24 lg:pt-28">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.15),_transparent_50%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.18),_transparent_55%)]"
         aria-hidden="true"
       />
       <div className="relative mx-auto max-w-7xl">
@@ -22,26 +22,30 @@ export function Hero() {
           animate="animate"
           variants={heroVariants}
           transition={transitionDefault}
-          className="mx-auto max-w-3xl text-center"
+          className="mx-auto max-w-4xl text-center"
         >
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Your Knowledge.
-            <br />
-            <span className="text-primary">Searchable. Chatable. Intelligent.</span>
+          <p className="mb-4 inline-flex rounded-full border border-border bg-surface px-3 py-1 text-meta">
+            Production-grade AI knowledge platform
+          </p>
+          <h1 className="text-hero">
+            Your AI Knowledge
+            <span className="block bg-gradient-to-r from-primary via-accent-secondary to-primary bg-clip-text text-transparent">
+              Workspace
+            </span>
           </h1>
-          <p className="mt-6 text-base text-text-secondary sm:text-lg">
-            Connect GitHub repositories, Obsidian vaults and documents. Search
-            everything instantly and chat with your knowledge using AI.
+          <p className="mx-auto mt-6 max-w-2xl text-body text-text-secondary">
+            Connect documents, GitHub repositories and Obsidian vaults. Ask
+            questions. Get answers with citations.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href={routes.signup}
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "group w-full sm:w-auto",
+                "group w-full shadow-[0_0_32px_rgba(139,92,246,0.25)] sm:w-auto",
               )}
             >
-              Get Started
+              Start Free
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link

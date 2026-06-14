@@ -107,9 +107,9 @@ export function DashboardContent() {
     summary.conversationCount === 0;
 
   return (
-    <section className="space-y-8">
+    <section className="mx-auto max-w-7xl space-y-8">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+        <h2 className="text-page-title">Dashboard</h2>
         <p className="text-text-secondary">
           Overview of your workspaces, documents, and conversations.
         </p>

@@ -70,6 +70,18 @@ export const formVariants: Variants = {
   exit: { opacity: 0, y: -8 },
 };
 
+export const dropdownVariants: Variants = {
+  initial: { opacity: 0, y: -4, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -4, scale: 0.98 },
+};
+
+export const hoverScale = {
+  whileHover: { scale: 1.01 },
+  whileTap: { scale: 0.99 },
+  transition: transitionFast,
+};
+
 export const fadeInVariants: Variants = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
