@@ -10,6 +10,7 @@ from app.models.mixins import CreatedAtMixin, UpdatedAtMixin
 
 if TYPE_CHECKING:
     from app.models.chat_session import ChatSession
+    from app.models.github_connection import GitHubConnection
     from app.models.workspace import Workspace
 
 
@@ -36,4 +37,10 @@ class User(Base, CreatedAtMixin, UpdatedAtMixin):
         "ChatSession",
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    github_connection: Mapped["GitHubConnection | None"] = relationship(
+        "GitHubConnection",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
     )

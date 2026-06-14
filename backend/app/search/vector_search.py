@@ -33,6 +33,8 @@ class VectorSearchEngine:
                 Chunk.id.label("chunk_id"),
                 Document.id.label("document_id"),
                 Document.title.label("document_title"),
+                Document.path.label("document_path"),
+                Document.document_metadata.label("document_metadata"),
                 Chunk.content.label("chunk_content"),
                 Source.id.label("source_id"),
                 Source.workspace_id.label("workspace_id"),
@@ -53,10 +55,13 @@ class VectorSearchEngine:
                 chunk_id=row.chunk_id,
                 document_id=row.document_id,
                 document_title=row.document_title,
+                document_path=row.document_path,
                 chunk_content=row.chunk_content,
                 similarity_score=float(row.similarity_score),
                 source_id=row.source_id,
                 workspace_id=row.workspace_id,
+                repository_name=self._extract_repository_name(row.document_metadata),
+                file_path=self._extract_file_path(row.document_metadata, row.document_path),
             )
             for row in rows
         ]
@@ -92,3 +97,17 @@ class VectorSearchEngine:
         if filters.date_to is not None:
             statement = statement.where(Chunk.created_at <= filters.date_to)
         return statement
+
+    def _extract_repository_name(self, metadata: dict | None) -> str | None:
+        if not metadata:
+            return None
+        repository_name = metadata.get("repository_name")
+        repository_owner = metadata.get("repository_owner")
+        if repository_owner and repository_name:
+            return f"{repository_owner}/{repository_name}"
+        return repository_name
+
+    def _extract_file_path(self, metadata: dict | None, document_path: str) -> str | None:
+        if metadata and metadata.get("relative_path"):
+            return str(metadata["relative_path"])
+        return document_path

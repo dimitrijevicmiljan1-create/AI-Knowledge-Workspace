@@ -262,6 +262,7 @@ def test_prompt_includes_conversation_history_before_context() -> None:
             chunk_id=chunk_id,
             document_id=uuid4(),
             document_title="Auth Guide",
+            document_path="docs/auth.md",
             chunk_content="Access tokens expire after 30 minutes.",
             similarity_score=0.92,
             source_id=uuid4(),

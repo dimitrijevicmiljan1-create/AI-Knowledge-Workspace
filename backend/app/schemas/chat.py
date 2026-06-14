@@ -40,6 +40,8 @@ class Citation(BaseModel):
     document_id: UUID
     source_id: UUID
     document_title: str
+    file_path: str | None = None
+    repository_name: str | None = None
 
 
 class RetrievedChunk(BaseModel):

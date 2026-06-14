@@ -12,6 +12,7 @@ from app.models.mixins import CreatedAtMixin, UpdatedAtMixin
 
 if TYPE_CHECKING:
     from app.models.document import Document
+    from app.models.github_repository import GitHubRepository
     from app.models.workspace import Workspace
 
 
@@ -61,4 +62,9 @@ class Source(Base, CreatedAtMixin, UpdatedAtMixin):
         "Document",
         back_populates="source",
         cascade="all, delete-orphan",
+    )
+    github_repository: Mapped["GitHubRepository | None"] = relationship(
+        "GitHubRepository",
+        back_populates="source",
+        uselist=False,
     )
