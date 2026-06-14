@@ -1,0 +1,7 @@
+JWT authentication is configured using JWT_SECRET_KEY.
+
+Access tokens expire after 30 minutes.
+
+Refresh tokens expire after 7 days.
+
+The OpenAI embedding model used by the application is text-embedding-3-small.
