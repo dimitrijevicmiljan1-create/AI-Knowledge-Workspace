@@ -1,6 +1,6 @@
 "use client";
 
-import { NoObsidianEmptyState } from "@/components/empty-states";
+import { ObsidianComingSoon } from "@/components/obsidian/obsidian-coming-soon";
 import { PageHeader } from "@/components/layout/page-header";
 
 export default function ObsidianPage() {
@@ -10,7 +10,7 @@ export default function ObsidianPage() {
         title="Obsidian"
         description="Connect vaults to search and chat with your notes."
       />
-      <NoObsidianEmptyState />
+      <ObsidianComingSoon />
     </section>
   );
 }

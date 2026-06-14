@@ -59,9 +59,6 @@ export function ChatComposer({
           <Send className="size-4" />
         </Button>
       </div>
-      <p className="mx-auto mt-2 max-w-3xl text-center text-meta">
-        Streaming responses will be enabled in a future release.
-      </p>
     </form>
   );
 }
