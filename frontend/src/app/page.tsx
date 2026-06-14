@@ -1,30 +1,24 @@
 import type { Metadata } from "next";
 
-import { Cta } from "@/components/landing/cta";
 import { Features } from "@/components/landing/features";
-import { Footer } from "@/components/landing/footer";
 import { Hero } from "@/components/landing/hero";
-import { Integrations } from "@/components/landing/integrations";
+import { LandingFooter } from "@/components/landing/landing-footer";
+import {
+  DocumentationPlaceholder,
+  PricingPlaceholder,
+} from "@/components/landing/placeholders";
+import { ProductPreview } from "@/components/landing/product-preview";
 import { PublicNavbar } from "@/components/layout/public-navbar";
 
-const title = "AI Knowledge Workspace — Searchable, Chatable, Intelligent";
+const title = "Your AI Knowledge Workspace";
 const description =
-  "Connect GitHub repositories, Obsidian vaults and documents. Search everything instantly and chat with your knowledge using AI.";
+  "Connect documents, GitHub repositories and Obsidian vaults. Ask questions. Get answers with citations.";
 
 export const metadata: Metadata = {
   title,
   description,
-  openGraph: {
-    title,
-    description,
-    type: "website",
-    siteName: "AI Knowledge Workspace",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title,
-    description,
-  },
+  openGraph: { title, description, type: "website", siteName: "AI Knowledge Workspace" },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 export default function LandingPage() {
@@ -33,11 +27,12 @@ export default function LandingPage() {
       <PublicNavbar />
       <main>
         <Hero />
+        <ProductPreview />
         <Features />
-        <Integrations />
-        <Cta />
+        <PricingPlaceholder />
+        <DocumentationPlaceholder />
       </main>
-      <Footer />
+      <LandingFooter />
     </div>
   );
 }

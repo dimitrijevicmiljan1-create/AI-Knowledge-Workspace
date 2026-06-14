@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 
 import { AppProviders } from "@/components/providers/app-providers";
 
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | AI Knowledge Workspace",
   },
   description:
-    "Connect GitHub repositories, Obsidian vaults and documents. Search everything instantly and chat with your knowledge using AI.",
+    "Connect documents, GitHub repositories and Obsidian vaults. Ask questions. Get answers with citations.",
 };
 
 export default function RootLayout({
@@ -26,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} antialiased`}>
+    <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className="antialiased">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

@@ -7,9 +7,11 @@ describe("Features", () => {
   it("renders feature cards", () => {
     render(<Features />);
 
-    expect(screen.getByRole("heading", { name: /everything you need/i })).toBeInTheDocument();
-    expect(screen.getByText(/github integration/i)).toBeInTheDocument();
-    expect(screen.getByText(/ai chat/i)).toBeInTheDocument();
-    expect(screen.getByText(/semantic search/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /built for knowledge work/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/knowledge sources/i)).toBeInTheDocument();
+    expect(screen.getByText(/rag chat/i)).toBeInTheDocument();
+    expect(screen.getByText(/citations/i)).toBeInTheDocument();
   });
 });

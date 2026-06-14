@@ -10,10 +10,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <Header />
-        <main className="flex-1 overflow-x-hidden p-4 sm:p-6">
-          <div className="mx-auto w-full max-w-7xl">
-            <PageTransition>{children}</PageTransition>
-          </div>
+        <main className="flex-1 overflow-x-hidden p-3 sm:p-5">
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
     </div>

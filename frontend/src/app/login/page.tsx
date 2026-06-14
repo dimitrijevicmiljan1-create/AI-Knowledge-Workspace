@@ -5,19 +5,17 @@ import { routes } from "@/lib/routes";
 
 export default function LoginPage() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <Link
-          href={routes.home}
-          className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight transition-opacity hover:opacity-80"
-        >
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
-            AI
-          </span>
-          AI Knowledge Workspace
-        </Link>
+    <div className="space-y-2">
+      <div className="mb-6 space-y-1 text-center">
+        <h1 className="text-page-title text-xl sm:text-2xl">Welcome back</h1>
+        <p className="text-sm text-text-secondary">Sign in to your workspace</p>
       </div>
       <LoginForm />
+      <p className="text-center text-meta">
+        <Link href={routes.home} className="text-primary hover:underline">
+          Back to home
+        </Link>
+      </p>
     </div>
   );
 }

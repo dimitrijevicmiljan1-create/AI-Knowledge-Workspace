@@ -13,6 +13,12 @@ import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { hasStoredSession } from "@/lib/auth-storage";
 
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Documentation", href: "#documentation" },
+];
+
 export function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
@@ -31,14 +37,14 @@ export function PublicNavbar() {
         : routes.signup;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <header className="glass-nav sticky top-0 z-50">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link
           href={routes.home}
           className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
           aria-label="AI Knowledge Workspace home"
         >
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-[0_0_24px_rgba(139,92,246,0.35)]">
             AI
           </span>
           <span className="hidden text-sm font-semibold tracking-tight sm:inline">
@@ -47,16 +53,25 @@ export function PublicNavbar() {
         </Link>
 
         <nav
-          className="hidden items-center gap-2 md:flex"
+          className="hidden items-center gap-1 md:flex"
           aria-label="Primary navigation"
         >
-          {showAuthLoading ? (
-            <div className="h-7 w-32 animate-pulse rounded-lg bg-muted" />
-          ) : isAuthenticated ? (
+          {navLinks.map((link) => (
             <Link
-              href={workspaceHref}
-              className={cn(buttonVariants({ size: "sm" }))}
+              key={link.href}
+              href={link.href}
+              className="rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-accent hover:text-foreground"
             >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-2 md:flex">
+          {showAuthLoading ? (
+            <div className="h-8 w-36 animate-pulse rounded-lg bg-muted" />
+          ) : isAuthenticated ? (
+            <Link href={workspaceHref} className={cn(buttonVariants({ size: "sm" }))}>
               Open Workspace
             </Link>
           ) : (
@@ -67,15 +82,12 @@ export function PublicNavbar() {
               >
                 Sign In
               </Link>
-              <Link
-                href={routes.signup}
-                className={cn(buttonVariants({ size: "sm" }))}
-              >
+              <Link href={routes.signup} className={cn(buttonVariants({ size: "sm" }))}>
                 Get Started
               </Link>
             </>
           )}
-        </nav>
+        </div>
 
         <Button
           variant="ghost"
@@ -98,7 +110,7 @@ export function PublicNavbar() {
               exit="exit"
               variants={backdropVariants}
               transition={transitionFast}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
               onClick={() => setMobileOpen(false)}
               aria-hidden="true"
             />
@@ -107,12 +119,12 @@ export function PublicNavbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={transitionFast}
-              className="fixed inset-y-0 right-0 z-50 flex w-72 flex-col border-l border-border bg-background p-6 md:hidden"
+              className="fixed inset-y-0 right-0 z-50 flex w-72 flex-col border-l border-border bg-surface p-6 md:hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Mobile navigation"
             >
-              <div className="mb-8 flex items-center justify-between">
+              <div className="mb-6 flex items-center justify-between">
                 <span className="text-sm font-semibold">Menu</span>
                 <Button
                   variant="ghost"
@@ -123,7 +135,19 @@ export function PublicNavbar() {
                   <X className="size-4" />
                 </Button>
               </div>
-              <nav className="flex flex-col gap-2" aria-label="Mobile navigation">
+              <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-lg px-3 py-2.5 text-sm text-text-secondary hover:bg-accent hover:text-foreground"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+              <div className="mt-6 flex flex-col gap-2 border-t border-border pt-6">
                 {showAuthLoading ? (
                   <div className="h-9 w-full animate-pulse rounded-lg bg-muted" />
                 ) : isAuthenticated ? (
@@ -155,7 +179,7 @@ export function PublicNavbar() {
                     </Link>
                   </>
                 )}
-              </nav>
+              </div>
             </motion.div>
           </>
         ) : null}
