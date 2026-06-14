@@ -180,10 +180,13 @@ class SearchService:
             chunk_id=hit.chunk_id,
             document_id=hit.document_id,
             document_title=hit.document_title,
+            document_path=hit.document_path,
             chunk_content=hit.chunk_content,
             similarity_score=hit.similarity_score,
             source_id=hit.source_id,
             workspace_id=hit.workspace_id,
+            repository_name=hit.repository_name,
+            file_path=hit.file_path,
         )
 
     def _get_owned_source(self, user: User, source_id: uuid.UUID) -> Source:

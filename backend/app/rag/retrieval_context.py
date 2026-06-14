@@ -10,6 +10,8 @@ class ContextChunk:
     document_title: str
     content: str
     similarity_score: float
+    file_path: str | None = None
+    repository_name: str | None = None
 
 
 @dataclass

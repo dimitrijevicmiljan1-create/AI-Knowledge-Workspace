@@ -5,18 +5,19 @@ from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
 from app.db.base import Base
-from app.models import (  # noqa: F401
-    ChatMessage,
-    ChatSession,
-    ChatExchange,
-    Chunk,
-    Document,
-    Embedding,
-    SearchHistory,
-    Source,
-    User,
-    Workspace,
-)
+from app.models.chat_exchange import ChatExchange
+from app.models.chat_message import ChatMessage, MessageRole
+from app.models.chat_session import ChatSession
+from app.models.chunk import Chunk
+from app.models.document import Document
+from app.models.embedding import Embedding
+from app.models.github_connection import GitHubConnection
+from app.models.github_repository import GitHubRepository
+from app.models.github_sync_job import GitHubSyncJob
+from app.models.search_history import SearchHistory
+from app.models.source import Source
+from app.models.user import User
+from app.models.workspace import Workspace
 
 config = context.config
 

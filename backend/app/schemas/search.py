@@ -17,10 +17,13 @@ class SearchResult(BaseModel):
     chunk_id: UUID
     document_id: UUID
     document_title: str
+    document_path: str
     chunk_content: str
     similarity_score: float = Field(ge=0.0, le=1.0)
     source_id: UUID
     workspace_id: UUID
+    repository_name: str | None = None
+    file_path: str | None = None
 
 
 class SearchResponse(BaseModel):

@@ -12,6 +12,8 @@ class CitationBuilder:
                 document_id=chunk.document_id,
                 source_id=chunk.source_id,
                 document_title=chunk.document_title,
+                file_path=chunk.file_path,
+                repository_name=chunk.repository_name,
             )
             for chunk in context.chunks
         ]

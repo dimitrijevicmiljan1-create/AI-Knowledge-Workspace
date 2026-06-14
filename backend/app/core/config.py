@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     chat_max_history_messages: int = 10
     chat_max_history_tokens: int = 4000
 
+    github_client_id: str = ""
+    github_client_secret: str = ""
+    github_oauth_redirect_uri: str = "http://localhost:8000/github/callback"
+    github_oauth_scopes: str = "read:user repo"
+    github_token_encryption_key: str = ""
+
     @property
     def async_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+psycopg2://")

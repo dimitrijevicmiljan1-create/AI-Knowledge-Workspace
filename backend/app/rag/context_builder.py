@@ -19,6 +19,8 @@ class RetrievalContextBuilder:
                     document_title=result.document_title,
                     content=result.chunk_content,
                     similarity_score=result.similarity_score,
+                    file_path=result.file_path,
+                    repository_name=result.repository_name,
                 )
             )
         return RetrievalContext(chunks=chunks)
