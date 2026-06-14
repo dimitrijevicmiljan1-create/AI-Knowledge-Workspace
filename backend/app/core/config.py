@@ -35,6 +35,9 @@ class Settings(BaseSettings):
 
     openai_chat_model: str = "gpt-4.1-mini"
 
+    chat_max_history_messages: int = 10
+    chat_max_history_tokens: int = 4000
+
     @property
     def async_database_url(self) -> str:
         return self.database_url.replace("postgresql://", "postgresql+psycopg2://")

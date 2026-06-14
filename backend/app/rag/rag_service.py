@@ -9,11 +9,19 @@ from app.ai.chat import get_chat_provider
 from app.models.user import User
 from app.rag.citation_builder import CitationBuilder
 from app.rag.context_builder import RetrievalContextBuilder
+from app.rag.conversation_memory import ConversationMemoryLoader
 from app.rag.prompt_builder import PromptBuilder
 from app.rag.retrieval_context import ContextChunk
 from app.repositories.chat_exchange_repository import ChatExchangeRepository
-from app.schemas.chat import ChatRequest, ChatResponse, RetrievedChunk
+from app.schemas.chat import (
+    ChatRequest,
+    ChatResponse,
+    RetrievedChunk,
+    SessionMessageRequest,
+    SessionMessageResponse,
+)
 from app.schemas.search import SearchRequest
+from app.services.chat_session_service import ChatSessionService
 from app.services.search_service import SearchService
 
 
@@ -27,13 +35,16 @@ class RAGService:
         db: Session,
         search_service: SearchService | None = None,
         chat_provider: ChatProvider | None = None,
+        chat_session_service: ChatSessionService | None = None,
     ) -> None:
         self.db = db
         self.search_service = search_service or SearchService(db)
         self.chat_provider = chat_provider or get_chat_provider()
+        self.chat_session_service = chat_session_service or ChatSessionService(db)
         self.context_builder = RetrievalContextBuilder()
         self.prompt_builder = PromptBuilder()
         self.citation_builder = CitationBuilder()
+        self.memory_loader = ConversationMemoryLoader()
         self.chat_exchange_repository = ChatExchangeRepository(db)
 
     def chat_workspace(
@@ -50,7 +61,8 @@ class RAGService:
         return self._generate_response(
             user=user,
             workspace_id=workspace_id,
-            chat_in=chat_in,
+            question=chat_in.question,
+            top_k=chat_in.top_k,
             search_response_results=search_response.results,
         )
 
@@ -73,7 +85,8 @@ class RAGService:
         return self._generate_response(
             user=user,
             workspace_id=source.workspace_id,
-            chat_in=chat_in,
+            question=chat_in.question,
+            top_k=chat_in.top_k,
             search_response_results=search_response.results,
             source_id=source_id,
         )
@@ -100,9 +113,45 @@ class RAGService:
         return self._generate_response(
             user=user,
             workspace_id=source.workspace_id,
-            chat_in=chat_in,
+            question=chat_in.question,
+            top_k=chat_in.top_k,
             search_response_results=search_response.results,
             document_id=document_id,
+        )
+
+    def chat_session_message(
+        self,
+        user: User,
+        session_id: uuid.UUID,
+        message_in: SessionMessageRequest,
+    ) -> SessionMessageResponse:
+        session, history = self.chat_session_service.load_conversation_history(user, session_id)
+        retrieval_query = self.memory_loader.build_retrieval_query(message_in.message, history)
+
+        search_response = self.search_service.search_workspace(
+            user,
+            session.workspace_id,
+            SearchRequest(query=retrieval_query, top_k=message_in.top_k),
+        )
+
+        response = self._generate_response(
+            user=user,
+            workspace_id=session.workspace_id,
+            question=message_in.message,
+            top_k=message_in.top_k,
+            search_response_results=search_response.results,
+            history=history,
+        )
+
+        self.chat_session_service.persist_exchange(
+            session_id=session_id,
+            user_message=message_in.message,
+            assistant_message=response.answer,
+        )
+
+        return SessionMessageResponse(
+            answer=response.answer,
+            citations=response.citations,
         )
 
     def _generate_response(
@@ -110,10 +159,12 @@ class RAGService:
         *,
         user: User,
         workspace_id: uuid.UUID,
-        chat_in: ChatRequest,
+        question: str,
+        top_k: int,
         search_response_results: list,
         source_id: uuid.UUID | None = None,
         document_id: uuid.UUID | None = None,
+        history: list | None = None,
     ) -> ChatResponse:
         started_at = time.perf_counter()
 
@@ -124,7 +175,7 @@ class RAGService:
         if context.is_empty:
             answer = self.NO_CONTEXT_ANSWER
         else:
-            messages = self.prompt_builder.build(chat_in.question, context)
+            messages = self.prompt_builder.build(question, context, history=history)
             answer = self.chat_provider.generate_answer(
                 [ChatMessage(**message) for message in messages]
             )
@@ -134,7 +185,7 @@ class RAGService:
             workspace_id=workspace_id,
             source_id=source_id,
             document_id=document_id,
-            question=chat_in.question,
+            question=question,
             answer=answer,
         )
 

@@ -7,9 +7,71 @@ from app.api.deps import get_current_active_user
 from app.db.session import get_db
 from app.models.user import User
 from app.rag.rag_service import RAGService
-from app.schemas.chat import ChatRequest, ChatResponse
+from app.schemas.chat import (
+    ChatRequest,
+    ChatResponse,
+    ChatSessionCreateRequest,
+    ChatSessionCreateResponse,
+    SessionMessageRequest,
+    SessionMessageResponse,
+)
+from app.services.chat_session_service import ChatSessionService
 
 router = APIRouter(prefix="/chat", tags=["chat"])
+
+
+@router.post(
+    "/session",
+    response_model=ChatSessionCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a conversation session",
+    responses={
+        401: {"description": "Unauthorized"},
+        403: {"description": "User is not the workspace owner"},
+        404: {"description": "Workspace not found"},
+    },
+)
+def create_chat_session(
+    session_in: ChatSessionCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> ChatSessionCreateResponse:
+    return ChatSessionService(db).create_session(
+        current_user,
+        session_in.workspace_id,
+        title=session_in.title,
+    )
+
+
+@router.post(
+    "/session/{session_id}/message",
+    response_model=SessionMessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Send a message in a conversation session",
+    responses={
+        401: {"description": "Unauthorized"},
+        404: {"description": "Chat session not found"},
+    },
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "How is JWT configured?",
+                        "top_k": 5,
+                    }
+                }
+            }
+        }
+    },
+)
+def send_session_message(
+    session_id: UUID,
+    message_in: SessionMessageRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> SessionMessageResponse:
+    return RAGService(db).chat_session_message(current_user, session_id, message_in)
 
 
 @router.post(
