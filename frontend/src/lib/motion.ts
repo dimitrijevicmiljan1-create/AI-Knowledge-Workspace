@@ -44,6 +44,32 @@ export const chatMessageVariants: Variants = {
   animate: { opacity: 1, y: 0 },
 };
 
+export const staggerContainerVariants: Variants = {
+  initial: {},
+  animate: {
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+export const heroVariants: Variants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};
+
+export const cardRevealVariants: Variants = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+};
+
+export const formVariants: Variants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+};
+
 export const fadeInVariants: Variants = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },

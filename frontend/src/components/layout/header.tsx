@@ -69,7 +69,7 @@ export function Header() {
               Sign in
             </Link>
             <Link
-              href="/register"
+              href="/signup"
               className={cn(buttonVariants({ size: "sm" }))}
             >
               Register

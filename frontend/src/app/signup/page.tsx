@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-import { LoginForm } from "@/components/auth/login-form";
+import { SignupForm } from "@/components/auth/signup-form";
 import { routes } from "@/lib/routes";
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
@@ -17,7 +17,7 @@ export default function LoginPage() {
           AI Knowledge Workspace
         </Link>
       </div>
-      <LoginForm />
+      <SignupForm />
     </div>
   );
 }

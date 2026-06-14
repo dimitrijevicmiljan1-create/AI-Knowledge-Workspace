@@ -4,12 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BookOpen,
   LayoutDashboard,
-  LogIn,
   PanelLeftClose,
   PanelLeftOpen,
-  UserPlus,
   X,
 } from "lucide-react";
 
@@ -20,10 +17,7 @@ import { backdropVariants, sidebarTransition, transitionFast } from "@/lib/motio
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "Home", href: "/", icon: BookOpen },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Login", href: "/login", icon: LogIn },
-  { name: "Register", href: "/register", icon: UserPlus },
 ];
 
 const SIDEBAR_WIDTH_EXPANDED = 256;

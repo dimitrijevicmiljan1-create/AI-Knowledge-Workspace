@@ -1,8 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getDashboardSummary, listWorkspaces } from "@/lib/api/workspaces";
+import {
+  createWorkspace,
+  getDashboardSummary,
+  listWorkspaces,
+  type CreateWorkspacePayload,
+} from "@/lib/api/workspaces";
 import { hasStoredSession } from "@/lib/auth-storage";
 
 export const workspacesQueryKey = ["workspaces"] as const;
@@ -21,5 +26,17 @@ export function useDashboardSummary(enabled = true) {
     queryKey: dashboardSummaryQueryKey,
     queryFn: getDashboardSummary,
     enabled: enabled && hasStoredSession(),
+  });
+}
+
+export function useCreateWorkspace() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateWorkspacePayload) => createWorkspace(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspacesQueryKey });
+      queryClient.invalidateQueries({ queryKey: dashboardSummaryQueryKey });
+    },
   });
 }

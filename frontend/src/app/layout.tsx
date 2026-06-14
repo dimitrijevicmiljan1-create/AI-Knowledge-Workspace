@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import { AppShell } from "@/components/layout/app-shell";
 import { AppProviders } from "@/components/providers/app-providers";
 
 import "./globals.css";
@@ -13,8 +12,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AI Knowledge Workspace",
-  description: "AI Knowledge Workspace SaaS application",
+  title: {
+    default: "AI Knowledge Workspace",
+    template: "%s | AI Knowledge Workspace",
+  },
+  description:
+    "Connect GitHub repositories, Obsidian vaults and documents. Search everything instantly and chat with your knowledge using AI.",
 };
 
 export default function RootLayout({
@@ -25,9 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} antialiased`}>
-        <AppProviders>
-          <AppShell>{children}</AppShell>
-        </AppProviders>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

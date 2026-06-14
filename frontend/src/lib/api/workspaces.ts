@@ -1,11 +1,26 @@
 import { apiRequest } from "@/lib/api/client";
 import type {
+  Workspace,
   WorkspaceListResponse,
   WorkspaceStats,
 } from "@/lib/api/types";
 
+export type CreateWorkspacePayload = {
+  name: string;
+  description?: string;
+};
+
 export async function listWorkspaces(): Promise<WorkspaceListResponse> {
   return apiRequest<WorkspaceListResponse>("/workspaces");
+}
+
+export async function createWorkspace(
+  payload: CreateWorkspacePayload,
+): Promise<Workspace> {
+  return apiRequest<Workspace>("/workspaces", {
+    method: "POST",
+    body: payload,
+  });
 }
 
 export async function getWorkspaceStats(
