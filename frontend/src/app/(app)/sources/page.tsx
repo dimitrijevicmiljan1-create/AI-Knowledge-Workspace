@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import {
   GitHubConnectPanel,
   RepositoryDiscovery,
@@ -18,7 +20,6 @@ import {
   useTrackedRepositories,
 } from "@/hooks/use-github";
 import { useUserWorkspace } from "@/hooks/use-user-workspace";
-import { useMemo, useState } from "react";
 
 export default function SourcesPage() {
   const { data: workspace, isLoading: isWorkspaceLoading } = useUserWorkspace();

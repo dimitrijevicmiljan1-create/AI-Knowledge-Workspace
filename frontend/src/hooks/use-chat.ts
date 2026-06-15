@@ -4,24 +4,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
 import type { ChatMessage } from "@/components/chat/chat-thread";
-import {
-  getChatMessages,
-  sendChatMessage,
-} from "@/lib/api/chat";
+import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
 import { chatsQueryKey } from "@/hooks/use-chats";
 
 export const chatMessagesQueryKey = (chatId: string) =>
   ["chat-messages", chatId] as const;
 
-function toChatMessage(
-  item: { id: string; role: string; content: string },
-  citations?: ChatMessage["citations"],
-): ChatMessage {
+function toChatMessage(item: {
+  id: string;
+  role: string;
+  content: string;
+}): ChatMessage {
   return {
     id: item.id,
     role: item.role as "user" | "assistant",
     content: item.content,
-    citations,
   };
 }
 

@@ -151,6 +151,15 @@ class GitHubSyncService(RepositorySyncProvider):
                     repository_owner=owner,
                     repository_name=name,
                 )
+                if not parsed.content.strip():
+                    logger.info(
+                        "Skipping empty file during GitHub sync: %s/%s@%s",
+                        repository.repository_owner,
+                        entry.path,
+                        commit_sha,
+                    )
+                    continue
+
                 metadata = self.parser.build_document_metadata(parsed)
                 metadata["indexed_at"] = datetime.now(UTC).isoformat()
 
