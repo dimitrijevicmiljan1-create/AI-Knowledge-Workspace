@@ -1,30 +1,31 @@
 "use client";
 
-import { Loader2, MessageSquarePlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { ChatThread } from "@/components/chat/chat-thread";
 import { NoChatsEmptyState } from "@/components/empty-states";
 import { ErrorBanner } from "@/components/ui/error-banner";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useChatSession } from "@/hooks/use-chat";
-import { useActiveWorkspace } from "@/hooks/use-active-workspace";
+import { useChatActions } from "@/hooks/use-chat";
 import { getErrorMessage } from "@/lib/errors";
 
-export function ChatPageContent() {
-  const { activeWorkspace, isLoading: isWorkspaceLoading } = useActiveWorkspace();
+type ChatPageContentProps = {
+  chatId: string;
+};
+
+export function ChatPageContent({ chatId }: ChatPageContentProps) {
   const {
     messages,
-    isInitializing,
-    initError,
+    isLoading,
+    error,
+    sendMessage,
     isSending,
     sendError,
-    sendMessage,
-    startNewSession,
-  } = useChatSession();
+  } = useChatActions(chatId);
 
-  if (isWorkspaceLoading) {
+  if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 p-6">
         <Skeleton className="h-8 w-48" />
@@ -33,44 +34,15 @@ export function ChatPageContent() {
     );
   }
 
-  if (!activeWorkspace) {
-    return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center p-6">
-        <p className="text-sm text-text-secondary">
-          Create a workspace to start chatting with your knowledge base.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-2xl border border-border bg-surface">
-      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-4 sm:px-6">
-        <div>
-          <h1 className="text-lg font-semibold">Chat</h1>
-          <p className="text-sm text-text-secondary">
-            Ask questions about {activeWorkspace.name}. Answers include citations
-            from indexed sources.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => void startNewSession()}
-          disabled={isInitializing || isSending}
-        >
-          <MessageSquarePlus className="size-4" />
-          New chat
-        </Button>
-      </div>
-
-      {initError ? (
+      {error ? (
         <div className="px-4 pt-4 sm:px-6">
-          <ErrorBanner message={initError} />
+          <ErrorBanner
+            message={getErrorMessage(error, "Unable to load conversation.")}
+          />
         </div>
       ) : null}
-
       {sendError ? (
         <div className="px-4 pt-4 sm:px-6">
           <ErrorBanner
@@ -79,23 +51,29 @@ export function ChatPageContent() {
         </div>
       ) : null}
 
-      {isInitializing ? (
-        <div className="flex flex-1 items-center justify-center">
-          <Loader2 className="size-6 animate-spin text-text-secondary" />
-        </div>
-      ) : (
-        <ChatThread
-          messages={messages}
-          isTyping={isSending}
-          emptyState={<NoChatsEmptyState />}
-        />
-      )}
-
+      <ChatThread
+        messages={messages}
+        isTyping={isSending}
+        emptyState={<NoChatsEmptyState />}
+      />
       <ChatComposer
         onSubmit={(message) => void sendMessage(message)}
-        disabled={isInitializing || Boolean(initError)}
         isLoading={isSending}
       />
+    </div>
+  );
+}
+
+export function NewChatRedirect() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/chat/new");
+  }, [router]);
+
+  return (
+    <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+      <Skeleton className="h-8 w-48" />
     </div>
   );
 }

@@ -21,7 +21,7 @@ from app.schemas.chat import (
     SessionMessageResponse,
 )
 from app.schemas.search import SearchRequest
-from app.services.chat_session_service import ChatSessionService
+from app.services.chat_service import ChatService
 from app.services.search_service import SearchService
 
 
@@ -35,12 +35,12 @@ class RAGService:
         db: Session,
         search_service: SearchService | None = None,
         chat_provider: ChatProvider | None = None,
-        chat_session_service: ChatSessionService | None = None,
+        chat_service: ChatService | None = None,
     ) -> None:
         self.db = db
         self.search_service = search_service or SearchService(db)
         self.chat_provider = chat_provider or get_chat_provider()
-        self.chat_session_service = chat_session_service or ChatSessionService(db)
+        self.chat_service = chat_service or ChatService(db)
         self.context_builder = RetrievalContextBuilder()
         self.prompt_builder = PromptBuilder()
         self.citation_builder = CitationBuilder()
@@ -119,32 +119,32 @@ class RAGService:
             document_id=document_id,
         )
 
-    def chat_session_message(
+    def chat_message(
         self,
         user: User,
-        session_id: uuid.UUID,
+        chat_id: uuid.UUID,
         message_in: SessionMessageRequest,
     ) -> SessionMessageResponse:
-        session, history = self.chat_session_service.load_conversation_history(user, session_id)
+        chat, history = self.chat_service.load_conversation_history(user, chat_id)
         retrieval_query = self.memory_loader.build_retrieval_query(message_in.message, history)
 
         search_response = self.search_service.search_workspace(
             user,
-            session.workspace_id,
+            chat.workspace_id,
             SearchRequest(query=retrieval_query, top_k=message_in.top_k),
         )
 
         response = self._generate_response(
             user=user,
-            workspace_id=session.workspace_id,
+            workspace_id=chat.workspace_id,
             question=message_in.message,
             top_k=message_in.top_k,
             search_response_results=search_response.results,
             history=history,
         )
 
-        self.chat_session_service.persist_exchange(
-            session_id=session_id,
+        self.chat_service.persist_exchange(
+            chat_id=chat_id,
             user_message=message_in.message,
             assistant_message=response.answer,
         )
@@ -153,6 +153,14 @@ class RAGService:
             answer=response.answer,
             citations=response.citations,
         )
+
+    def chat_session_message(
+        self,
+        user: User,
+        session_id: uuid.UUID,
+        message_in: SessionMessageRequest,
+    ) -> SessionMessageResponse:
+        return self.chat_message(user, session_id, message_in)
 
     def _generate_response(
         self,

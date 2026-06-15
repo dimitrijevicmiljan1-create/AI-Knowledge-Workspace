@@ -52,7 +52,7 @@ export function SignupForm() {
         full_name: name.trim() || undefined,
       });
       await login({ email, password });
-      router.push(routes.onboarding);
+      router.push(routes.chat);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {

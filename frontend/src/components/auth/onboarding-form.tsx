@@ -42,7 +42,7 @@ export function OnboardingForm() {
         name: trimmedName,
         description: description.trim() || undefined,
       });
-      router.push(routes.dashboard);
+      router.push(routes.chat);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {

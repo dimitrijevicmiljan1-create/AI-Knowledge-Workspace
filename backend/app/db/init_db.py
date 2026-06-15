@@ -1,8 +1,8 @@
 from app.db.base import Base
 from app.db.database import engine
 from app.models import (  # noqa: F401
+    Chat,
     ChatMessage,
-    ChatSession,
     ChatExchange,
     Chunk,
     Document,
@@ -10,6 +10,7 @@ from app.models import (  # noqa: F401
     SearchHistory,
     Source,
     User,
+    UserSettings,
     Workspace,
 )
 

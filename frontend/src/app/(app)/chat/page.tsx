@@ -1,7 +1,7 @@
 "use client";
 
-import { ChatPageContent } from "@/components/chat/chat-page-content";
+import { NewChatRedirect } from "@/components/chat/chat-page-content";
 
 export default function ChatPage() {
-  return <ChatPageContent />;
+  return <NewChatRedirect />;
 }

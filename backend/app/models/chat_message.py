@@ -10,7 +10,7 @@ from app.db.base import Base
 from app.models.mixins import CreatedAtMixin
 
 if TYPE_CHECKING:
-    from app.models.chat_session import ChatSession
+    from app.models.chat import Chat
 
 
 class MessageRole(str, enum.Enum):
@@ -27,9 +27,9 @@ class ChatMessage(Base, CreatedAtMixin):
         primary_key=True,
         default=uuid.uuid4,
     )
-    session_id: Mapped[uuid.UUID] = mapped_column(
+    chat_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("chat_sessions.id", ondelete="CASCADE"),
+        ForeignKey("chats.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -39,4 +39,4 @@ class ChatMessage(Base, CreatedAtMixin):
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
-    session: Mapped["ChatSession"] = relationship("ChatSession", back_populates="messages")
+    chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")

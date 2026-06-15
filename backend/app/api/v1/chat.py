@@ -15,7 +15,7 @@ from app.schemas.chat import (
     SessionMessageRequest,
     SessionMessageResponse,
 )
-from app.services.chat_session_service import ChatSessionService
+from app.services.chat_service import ChatService
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -36,7 +36,7 @@ def create_chat_session(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> ChatSessionCreateResponse:
-    return ChatSessionService(db).create_session(
+    return ChatService(db).create_session(
         current_user,
         session_in.workspace_id,
         title=session_in.title,

@@ -3,19 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, LogOut, Menu, Bell, Search } from "lucide-react";
+import { CheckCircle2, LogOut, Menu, Bell } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useSidebar } from "@/components/layout/sidebar-context";
-import { WorkspaceSelector } from "@/components/workspace/workspace-selector";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { dropdownVariants, transitionFast } from "@/lib/motion";
 import { routes } from "@/lib/routes";
 import { hasStoredSession } from "@/lib/auth-storage";
-import { clearActiveWorkspaceId } from "@/lib/workspace-storage";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -37,7 +34,6 @@ export function Header() {
   }, []);
 
   function handleLogout() {
-    clearActiveWorkspaceId();
     logout();
     router.push(routes.home);
   }
@@ -54,31 +50,6 @@ export function Header() {
           <Menu className="size-4" />
         </Button>
       ) : null}
-
-      <div className="flex min-w-0 items-center gap-2">
-        {showAuthLoading ? (
-          <Skeleton className="h-8 w-36" />
-        ) : isAuthenticated ? (
-          <WorkspaceSelector />
-        ) : (
-          <span className="text-sm font-medium text-text-secondary">No workspace</span>
-        )}
-      </div>
-
-      <div className="hidden flex-1 md:block">
-        <div className="relative mx-auto max-w-md">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <Input
-            readOnly
-            aria-label="Search knowledge"
-            placeholder="Search knowledge…"
-            className="h-9 cursor-default bg-surface pl-9 text-sm"
-          />
-        </div>
-      </div>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
         <Button

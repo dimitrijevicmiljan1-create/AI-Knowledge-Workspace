@@ -14,8 +14,8 @@ if TYPE_CHECKING:
     from app.models.workspace import Workspace
 
 
-class ChatSession(Base, CreatedAtMixin, UpdatedAtMixin):
-    __tablename__ = "chat_sessions"
+class Chat(Base, CreatedAtMixin, UpdatedAtMixin):
+    __tablename__ = "chats"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -36,11 +36,15 @@ class ChatSession(Base, CreatedAtMixin, UpdatedAtMixin):
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    user: Mapped["User"] = relationship("User", back_populates="chat_sessions")
-    workspace: Mapped["Workspace"] = relationship("Workspace", back_populates="chat_sessions")
+    user: Mapped["User"] = relationship("User", back_populates="chats")
+    workspace: Mapped["Workspace"] = relationship("Workspace", back_populates="chats")
     messages: Mapped[list["ChatMessage"]] = relationship(
         "ChatMessage",
-        back_populates="session",
+        back_populates="chat",
         cascade="all, delete-orphan",
         order_by="ChatMessage.created_at",
     )
+
+
+# Backward-compatible alias for internal imports during transition.
+ChatSession = Chat

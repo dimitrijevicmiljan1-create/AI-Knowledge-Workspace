@@ -20,7 +20,7 @@ vi.mock("@/hooks/use-auth", () => ({
 }));
 
 vi.mock("@/lib/api/workspaces", () => ({
-  listWorkspaces: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+  listWorkspaces: vi.fn(),
 }));
 
 describe("LoginForm", () => {
@@ -42,7 +42,7 @@ describe("LoginForm", () => {
     expect(screen.getByText(/forgot password\?/i)).toBeInTheDocument();
   });
 
-  it("redirects to onboarding when user has no workspaces", async () => {
+  it("redirects to chat after sign in", async () => {
     const user = userEvent.setup();
     renderWithProviders(<LoginForm />);
 
@@ -51,7 +51,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalledWith("/onboarding");
+      expect(push).toHaveBeenCalledWith("/chat");
     });
   });
 });

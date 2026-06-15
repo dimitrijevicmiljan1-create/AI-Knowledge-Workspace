@@ -12,7 +12,7 @@ import {
   listDiscoveredRepositories,
   syncGitHubRepository,
 } from "@/lib/api/github";
-import { useActiveWorkspace } from "@/hooks/use-active-workspace";
+import { useUserWorkspace } from "@/hooks/use-user-workspace";
 import { hasStoredSession } from "@/lib/auth-storage";
 import {
   getStoredRepositories,
@@ -52,18 +52,19 @@ export function useDiscoveredRepositories(enabled = true) {
 }
 
 export function useTrackedRepositories() {
-  const { activeWorkspaceId } = useActiveWorkspace();
+  const { data: workspace } = useUserWorkspace();
+  const workspaceId = workspace?.id;
 
   return useQuery({
-    queryKey: [...githubTrackedQueryKey, activeWorkspaceId],
+    queryKey: [...githubTrackedQueryKey, workspaceId],
     queryFn: async () => {
-      const stored = getStoredRepositories(activeWorkspaceId!);
+      const stored = getStoredRepositories(workspaceId!);
       const repositories = await Promise.all(
         stored.map((item) => getGitHubRepository(item.repositoryId)),
       );
       return repositories;
     },
-    enabled: hasStoredSession() && Boolean(activeWorkspaceId),
+    enabled: hasStoredSession() && Boolean(workspaceId),
     refetchInterval: 10_000,
   });
 }
@@ -79,13 +80,13 @@ export function useConnectGitHub() {
 
 export function useAddGitHubRepository() {
   const queryClient = useQueryClient();
-  const { activeWorkspaceId } = useActiveWorkspace();
+  const { data: workspace } = useUserWorkspace();
 
   return useMutation({
     mutationFn: addGitHubRepository,
     onSuccess: (repository) => {
-      if (activeWorkspaceId) {
-        upsertStoredRepository(activeWorkspaceId, {
+      if (workspace?.id) {
+        upsertStoredRepository(workspace.id, {
           repositoryId: repository.id,
           sourceId: repository.source_id,
           githubRepoId: repository.github_repo_id,
@@ -127,13 +128,13 @@ export function useGitHubSyncStatus(repositoryId: string | null, enabled = false
 
 export function useDeleteGitHubRepository() {
   const queryClient = useQueryClient();
-  const { activeWorkspaceId } = useActiveWorkspace();
+  const { data: workspace } = useUserWorkspace();
 
   return useMutation({
     mutationFn: deleteGitHubRepository,
     onSuccess: (_data, repositoryId) => {
-      if (activeWorkspaceId) {
-        removeStoredRepository(activeWorkspaceId, repositoryId);
+      if (workspace?.id) {
+        removeStoredRepository(workspace.id, repositoryId);
       }
       queryClient.invalidateQueries({ queryKey: githubTrackedQueryKey });
     },

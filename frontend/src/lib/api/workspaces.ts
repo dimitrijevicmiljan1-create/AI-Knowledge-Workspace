@@ -14,6 +14,10 @@ export async function listWorkspaces(): Promise<WorkspaceListResponse> {
   return apiRequest<WorkspaceListResponse>("/workspaces");
 }
 
+export async function getMyWorkspace(): Promise<Workspace> {
+  return apiRequest<Workspace>("/workspaces/me");
+}
+
 export async function createWorkspace(
   payload: CreateWorkspacePayload,
 ): Promise<Workspace> {

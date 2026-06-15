@@ -199,6 +199,58 @@ export type ChatSessionCreateResponse = {
   session_id: string;
 };
 
+export type ChatSummary = {
+  id: string;
+  workspace_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChatListResponse = {
+  items: ChatSummary[];
+  total: number;
+};
+
+export type ChatCreateResponse = {
+  id: string;
+};
+
+export type ChatMessageItem = {
+  id: string;
+  role: string;
+  content: string;
+  created_at: string;
+};
+
+export type ChatMessageListResponse = {
+  items: ChatMessageItem[];
+  total: number;
+};
+
+export type UserSettings = {
+  default_model: string;
+  temperature: number;
+  response_length: string;
+  chunk_size: number;
+  chunk_overlap: number;
+  auto_index_uploads: boolean;
+};
+
+export type IntegrationStatus = {
+  github_connected: boolean;
+  github_username: string | null;
+  notion_connected: boolean;
+  google_drive_connected: boolean;
+};
+
+export type UsageStats = {
+  documents: number;
+  chunks: number;
+  storage_bytes: number;
+  queries: number;
+};
+
 export type SessionMessageResponse = {
   answer: string;
   citations: ApiCitation[];

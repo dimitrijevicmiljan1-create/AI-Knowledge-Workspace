@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import {
-  LayoutDashboard,
   MessageSquare,
   FolderGit2,
   BookMarked,
@@ -11,17 +10,14 @@ import {
 } from "lucide-react";
 
 import { cardRevealVariants, heroVariants, transitionDefault } from "@/lib/motion";
-import { appNavigation } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
-const iconMap = {
-  Workspace: LayoutDashboard,
-  Chat: MessageSquare,
-  Sources: FolderGit2,
-  GitHub: FolderGit2,
-  Obsidian: BookMarked,
-  Settings: Settings,
-} as const;
+const previewNavigation = [
+  { name: "Chat", icon: MessageSquare, active: true },
+  { name: "Documents", icon: FolderGit2, active: false },
+  { name: "Sources", icon: BookMarked, active: false },
+  { name: "Settings", icon: Settings, active: false },
+] as const;
 
 export function ProductPreview() {
   return (
@@ -70,15 +66,14 @@ export function ProductPreview() {
                 <span className="text-sm font-semibold">Knowledge</span>
               </div>
               <nav className="space-y-1" aria-label="Preview navigation">
-                {appNavigation.map((item) => {
-                  const Icon = iconMap[item.name as keyof typeof iconMap];
-                  const active = item.name === "Workspace";
+                {previewNavigation.map((item) => {
+                  const Icon = item.icon;
                   return (
                     <div
-                      key={item.href}
+                      key={item.name}
                       className={cn(
                         "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm",
-                        active
+                        item.active
                           ? "bg-primary/15 text-primary"
                           : "text-text-secondary",
                       )}

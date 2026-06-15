@@ -1,41 +1,47 @@
 import { apiRequest } from "@/lib/api/client";
 import type {
   ApiCitation,
-  ChatSessionCreateResponse,
+  ChatCreateResponse,
+  ChatListResponse,
+  ChatMessageListResponse,
+  ChatSummary,
   SessionMessageResponse,
 } from "@/lib/api/types";
 import type { Citation } from "@/components/chat/citation-badge";
 
-export type CreateChatSessionPayload = {
-  workspace_id: string;
-  title?: string;
-};
+export async function listChats(): Promise<ChatListResponse> {
+  return apiRequest<ChatListResponse>("/chats");
+}
 
-export async function createChatSession(
-  payload: CreateChatSessionPayload,
-): Promise<ChatSessionCreateResponse> {
-  return apiRequest<ChatSessionCreateResponse>("/chat/session", {
+export async function createChat(title?: string): Promise<ChatCreateResponse> {
+  return apiRequest<ChatCreateResponse>("/chats", {
     method: "POST",
-    body: payload,
+    body: title ? { title } : {},
   });
 }
 
-export type SendSessionMessagePayload = {
-  message: string;
-  top_k?: number;
-};
+export async function getChat(chatId: string): Promise<ChatSummary> {
+  return apiRequest<ChatSummary>(`/chats/${chatId}`);
+}
 
-export async function sendSessionMessage(
-  sessionId: string,
-  payload: SendSessionMessagePayload,
+export async function getChatMessages(
+  chatId: string,
+): Promise<ChatMessageListResponse> {
+  return apiRequest<ChatMessageListResponse>(`/chats/${chatId}/messages`);
+}
+
+export async function deleteChat(chatId: string): Promise<void> {
+  return apiRequest<void>(`/chats/${chatId}`, { method: "DELETE" });
+}
+
+export async function sendChatMessage(
+  chatId: string,
+  message: string,
 ): Promise<SessionMessageResponse> {
-  return apiRequest<SessionMessageResponse>(
-    `/chat/session/${sessionId}/message`,
-    {
-      method: "POST",
-      body: payload,
-    },
-  );
+  return apiRequest<SessionMessageResponse>(`/chats/${chatId}/messages`, {
+    method: "POST",
+    body: { message },
+  });
 }
 
 export function mapApiCitation(citation: ApiCitation): Citation {

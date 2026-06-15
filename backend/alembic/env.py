@@ -5,9 +5,9 @@ from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
 from app.db.base import Base
+from app.models.chat import Chat
 from app.models.chat_exchange import ChatExchange
 from app.models.chat_message import ChatMessage, MessageRole
-from app.models.chat_session import ChatSession
 from app.models.chunk import Chunk
 from app.models.document import Document
 from app.models.embedding import Embedding
@@ -17,6 +17,7 @@ from app.models.github_sync_job import GitHubSyncJob
 from app.models.search_history import SearchHistory
 from app.models.source import Source
 from app.models.user import User
+from app.models.user_settings import UserSettings
 from app.models.workspace import Workspace
 
 config = context.config
