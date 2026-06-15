@@ -1,13 +1,51 @@
+from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class ChatRequest(BaseModel):
-    question: str = Field(min_length=1, examples=["How do I configure JWT authentication?"])
-    top_k: int = Field(default=5, ge=1, le=50, examples=[5])
+class ChatCreateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=255, examples=["Research notes"])
 
 
+class ChatCreateResponse(BaseModel):
+    id: UUID
+
+
+class ChatSummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    workspace_id: UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ChatListResponse(BaseModel):
+    items: list[ChatSummaryResponse]
+    total: int
+
+
+class ChatUpdateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+
+
+class ChatMessageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    role: str
+    content: str
+    created_at: datetime
+
+
+class ChatMessageListResponse(BaseModel):
+    items: list[ChatMessageResponse]
+    total: int
+
+
+# Legacy session schemas kept for backward compatibility.
 class ChatSessionCreateRequest(BaseModel):
     workspace_id: UUID
     title: str | None = Field(default=None, max_length=255, examples=["JWT authentication questions"])
@@ -23,6 +61,11 @@ class ChatSessionResponse(BaseModel):
     title: str
 
     model_config = {"from_attributes": True}
+
+
+class ChatRequest(BaseModel):
+    question: str = Field(min_length=1, examples=["How do I configure JWT authentication?"])
+    top_k: int = Field(default=5, ge=1, le=50, examples=[5])
 
 
 class SessionMessageRequest(BaseModel):

@@ -1,42 +1,47 @@
 "use client";
 
-import { DocumentUpload } from "@/components/sources/document-upload";
-import { DocumentsList } from "@/components/sources/documents-list";
+import { useMemo, useState } from "react";
+
+import {
+  GitHubConnectPanel,
+  RepositoryDiscovery,
+  TrackedRepositories,
+} from "@/components/github/github-panels";
+import { ObsidianComingSoon } from "@/components/obsidian/obsidian-coming-soon";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useActiveWorkspace } from "@/hooks/use-active-workspace";
 import {
-  useDeleteUpload,
-  useDocumentStats,
-  useUploadDocuments,
-  useUploads,
-} from "@/hooks/use-sources";
-import { getWorkspaceStats } from "@/lib/api/workspaces";
-import { useQuery } from "@tanstack/react-query";
+  useAddGitHubRepository,
+  useConnectGitHub,
+  useDeleteGitHubRepository,
+  useDiscoveredRepositories,
+  useGitHubConnection,
+  useSyncGitHubRepository,
+  useTrackedRepositories,
+} from "@/hooks/use-github";
+import { useUserWorkspace } from "@/hooks/use-user-workspace";
 
 export default function SourcesPage() {
-  const { activeWorkspace, activeWorkspaceId, isLoading: isWorkspaceLoading } =
-    useActiveWorkspace();
-  const {
-    data: uploads,
-    isLoading: isUploadsLoading,
-    isFetching,
-    error: uploadsError,
-    refetch,
-  } = useUploads();
-  const uploadDocuments = useUploadDocuments();
-  const deleteUpload = useDeleteUpload();
+  const { data: workspace, isLoading: isWorkspaceLoading } = useUserWorkspace();
+  const connectionQuery = useGitHubConnection();
+  const isConnected = Boolean(connectionQuery.data);
+  const discoveredQuery = useDiscoveredRepositories(isConnected);
+  const trackedQuery = useTrackedRepositories();
+  const connectGitHub = useConnectGitHub();
+  const addRepository = useAddGitHubRepository();
+  const syncRepository = useSyncGitHubRepository();
+  const deleteRepository = useDeleteGitHubRepository();
+  const [syncingRepositoryId, setSyncingRepositoryId] = useState<string | null>(
+    null,
+  );
 
-  const documentIds =
-    uploads?.items.map((file) => file.document_id) ?? [];
-
-  const { data: statsByDocumentId = {} } = useDocumentStats(documentIds);
-
-  const { data: workspaceStats } = useQuery({
-    queryKey: ["workspace-stats", activeWorkspaceId],
-    queryFn: () => getWorkspaceStats(activeWorkspaceId!),
-    enabled: Boolean(activeWorkspaceId),
-  });
+  const trackedRepoIds = useMemo(
+    () =>
+      new Set(
+        (trackedQuery.data ?? []).map((repository) => repository.github_repo_id),
+      ),
+    [trackedQuery.data],
+  );
 
   if (isWorkspaceLoading) {
     return (
@@ -47,64 +52,64 @@ export default function SourcesPage() {
     );
   }
 
-  if (!activeWorkspace) {
-    return (
-      <section className="space-y-6">
-        <PageHeader
-          title="Sources"
-          description="Manage documents in your workspace."
-        />
-        <p className="text-sm text-text-secondary">
-          Create a workspace to upload and manage documents.
-        </p>
-      </section>
-    );
-  }
-
   return (
     <section className="space-y-6">
       <PageHeader
         title="Sources"
-        description="Upload documents and track indexing status for your active workspace."
+        description="Connect external knowledge sources to your personal workspace."
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-meta">Workspace</p>
-          <p className="text-sm font-semibold">{activeWorkspace.name}</p>
-        </div>
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-meta">Documents</p>
-          <p className="text-sm font-semibold">
-            {workspaceStats?.document_count ?? uploads?.total ?? 0}
-          </p>
-        </div>
-        <div className="rounded-xl border border-border bg-surface p-4">
-          <p className="text-meta">Sources</p>
-          <p className="text-sm font-semibold">
-            {workspaceStats?.source_count ?? 0}
-          </p>
-        </div>
-      </div>
-
-      <DocumentUpload
-        isUploading={uploadDocuments.isPending}
-        onUpload={async (files) => {
-          await uploadDocuments.mutateAsync(files);
-        }}
+      <GitHubConnectPanel
+        isConnected={isConnected}
+        username={connectionQuery.data?.github_username}
+        connectedAt={connectionQuery.data?.connected_at}
+        isConnecting={connectGitHub.isPending}
+        onConnect={() => connectGitHub.mutate()}
+        connectionError={connectionQuery.error}
       />
 
-      <DocumentsList
-        files={uploads?.items ?? []}
-        statsByDocumentId={statsByDocumentId}
-        isLoading={isUploadsLoading}
-        isRefreshing={isFetching}
-        onRefresh={() => void refetch()}
-        onDelete={async (documentId) => {
-          await deleteUpload.mutateAsync(documentId);
-        }}
-        error={uploadsError}
-      />
+      {isConnected && workspace ? (
+        <>
+          <RepositoryDiscovery
+            repositories={discoveredQuery.data?.items ?? []}
+            trackedRepoIds={trackedRepoIds}
+            isLoading={discoveredQuery.isLoading}
+            isAdding={addRepository.isPending}
+            error={discoveredQuery.error}
+            onAdd={async (repository) => {
+              await addRepository.mutateAsync({
+                workspace_id: workspace.id,
+                github_repo_id: repository.github_repo_id,
+                owner: repository.owner,
+                name: repository.name,
+              });
+            }}
+          />
+
+          <TrackedRepositories
+            repositories={trackedQuery.data ?? []}
+            isLoading={trackedQuery.isLoading}
+            syncingRepositoryId={syncingRepositoryId}
+            error={trackedQuery.error}
+            isRefreshing={trackedQuery.isFetching}
+            onRefresh={() => void trackedQuery.refetch()}
+            onSync={async (repositoryId) => {
+              setSyncingRepositoryId(repositoryId);
+              try {
+                await syncRepository.mutateAsync(repositoryId);
+                await trackedQuery.refetch();
+              } finally {
+                setSyncingRepositoryId(null);
+              }
+            }}
+            onDelete={async (repositoryId) => {
+              await deleteRepository.mutateAsync(repositoryId);
+            }}
+          />
+        </>
+      ) : null}
+
+      <ObsidianComingSoon />
     </section>
   );
 }

@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 import { ApiError } from "@/lib/api/client";
-import { listWorkspaces } from "@/lib/api/workspaces";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,8 +32,7 @@ export function LoginForm() {
 
     try {
       await login({ email, password });
-      const { total } = await listWorkspaces();
-      router.push(await getPostAuthPath(total));
+      router.push(getPostAuthPath());
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -58,7 +56,7 @@ export function LoginForm() {
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
           <CardDescription>
-            Enter your account credentials to access your workspaces.
+            Enter your account credentials to access your knowledge workspace.
           </CardDescription>
         </CardHeader>
         <CardContent>

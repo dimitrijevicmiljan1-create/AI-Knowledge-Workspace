@@ -48,7 +48,7 @@ describe("OnboardingForm", () => {
       expect(mutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({ name: "Engineering" }),
       );
-      expect(push).toHaveBeenCalledWith("/dashboard");
+      expect(push).toHaveBeenCalledWith("/chat");
     });
   });
 });

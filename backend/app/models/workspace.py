@@ -9,7 +9,7 @@ from app.db.base import Base
 from app.models.mixins import CreatedAtMixin, UpdatedAtMixin
 
 if TYPE_CHECKING:
-    from app.models.chat_session import ChatSession
+    from app.models.chat import Chat
     from app.models.github_repository import GitHubRepository
     from app.models.source import Source
     from app.models.user import User
@@ -38,8 +38,8 @@ class Workspace(Base, CreatedAtMixin, UpdatedAtMixin):
         back_populates="workspace",
         cascade="all, delete-orphan",
     )
-    chat_sessions: Mapped[list["ChatSession"]] = relationship(
-        "ChatSession",
+    chats: Mapped[list["Chat"]] = relationship(
+        "Chat",
         back_populates="workspace",
         cascade="all, delete-orphan",
     )

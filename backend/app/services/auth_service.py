@@ -12,8 +12,10 @@ from app.core.security import (
     verify_password,
 )
 from app.repositories.user_repository import UserRepository
+from app.repositories.user_settings_repository import UserSettingsRepository
 from app.schemas.auth import Token, UserLogin, UserRegister
 from app.schemas.user import UserResponse
+from app.services.workspace_service import WorkspaceService
 
 
 class AuthService:
@@ -34,6 +36,8 @@ class AuthService:
             hashed_password=get_password_hash(user_in.password),
             full_name=user_in.full_name,
         )
+        WorkspaceService(self.db).ensure_user_workspace(user)
+        UserSettingsRepository(self.db).create_defaults(user.id)
         return UserResponse.model_validate(user)
 
     def login_user(self, credentials: UserLogin) -> Token:

@@ -20,7 +20,29 @@ class WorkspaceService:
         self.db = db
         self.workspace_repository = WorkspaceRepository(db)
 
+    def ensure_user_workspace(self, user: User) -> Workspace:
+        workspace = self.workspace_repository.get_primary_by_owner(user.id)
+        if workspace is None:
+            workspace = self.workspace_repository.create(
+                name=self._default_workspace_name(user),
+                description="Personal knowledge workspace",
+                owner_id=user.id,
+            )
+        return workspace
+
+    def get_user_workspace(self, user: User) -> Workspace:
+        return self.ensure_user_workspace(user)
+
+    def get_owned_workspace(self, user: User, workspace_id: uuid.UUID) -> Workspace:
+        return self._get_owned_workspace(user, workspace_id)
+
     def create_workspace(self, user: User, workspace_in: WorkspaceCreate) -> WorkspaceResponse:
+        existing = self.workspace_repository.get_primary_by_owner(user.id)
+        if existing is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="User already has a workspace",
+            )
         workspace = self.workspace_repository.create(
             name=workspace_in.name,
             description=workspace_in.description,
@@ -58,9 +80,14 @@ class WorkspaceService:
             workspace_id=workspace.id,
             document_count=self.workspace_repository.count_documents(workspace.id),
             source_count=self.workspace_repository.count_sources(workspace.id),
-            chat_count=self.workspace_repository.count_chat_sessions(workspace.id),
+            chat_count=self.workspace_repository.count_chats(workspace.id),
             created_at=workspace.created_at,
         )
+
+    def _default_workspace_name(self, user: User) -> str:
+        if user.full_name:
+            return user.full_name
+        return user.email.split("@")[0]
 
     def _get_owned_workspace(self, user: User, workspace_id: uuid.UUID) -> Workspace:
         workspace = self.workspace_repository.get_by_id(workspace_id)

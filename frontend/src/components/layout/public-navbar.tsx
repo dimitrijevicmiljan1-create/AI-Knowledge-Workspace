@@ -7,7 +7,6 @@ import { useState } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useWorkspaces } from "@/hooks/use-workspaces";
 import { backdropVariants, transitionFast } from "@/lib/motion";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -22,19 +21,8 @@ const navLinks = [
 export function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
-  const { data: workspaces, isLoading: isWorkspacesLoading } = useWorkspaces(
-    isAuthenticated,
-  );
-
-  const showAuthLoading =
-    hasStoredSession() && (isLoading || (isAuthenticated && isWorkspacesLoading));
-
-  const workspaceHref =
-    isAuthenticated && workspaces && workspaces.total > 0
-      ? routes.dashboard
-      : isAuthenticated
-        ? routes.onboarding
-        : routes.signup;
+  const workspaceHref = isAuthenticated ? routes.chat : routes.signup;
+  const showAuthLoading = hasStoredSession() && isLoading;
 
   return (
     <header className="glass-nav sticky top-0 z-50">

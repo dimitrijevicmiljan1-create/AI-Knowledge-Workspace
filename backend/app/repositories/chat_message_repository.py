@@ -13,12 +13,12 @@ class ChatMessageRepository:
     def create(
         self,
         *,
-        session_id: uuid.UUID,
+        chat_id: uuid.UUID,
         role: MessageRole,
         content: str,
     ) -> ChatMessage:
         message = ChatMessage(
-            session_id=session_id,
+            chat_id=chat_id,
             role=role,
             content=content,
         )
@@ -30,17 +30,17 @@ class ChatMessageRepository:
     def create_pair(
         self,
         *,
-        session_id: uuid.UUID,
+        chat_id: uuid.UUID,
         user_content: str,
         assistant_content: str,
     ) -> tuple[ChatMessage, ChatMessage]:
         user_message = ChatMessage(
-            session_id=session_id,
+            chat_id=chat_id,
             role=MessageRole.user,
             content=user_content,
         )
         assistant_message = ChatMessage(
-            session_id=session_id,
+            chat_id=chat_id,
             role=MessageRole.assistant,
             content=assistant_content,
         )
@@ -50,10 +50,13 @@ class ChatMessageRepository:
         self.db.refresh(assistant_message)
         return user_message, assistant_message
 
-    def list_by_session(self, session_id: uuid.UUID) -> list[ChatMessage]:
+    def list_by_chat(self, chat_id: uuid.UUID) -> list[ChatMessage]:
         statement = (
             select(ChatMessage)
-            .where(ChatMessage.session_id == session_id)
+            .where(ChatMessage.chat_id == chat_id)
             .order_by(ChatMessage.created_at.asc())
         )
         return list(self.db.scalars(statement).all())
+
+    def list_by_session(self, session_id: uuid.UUID) -> list[ChatMessage]:
+        return self.list_by_chat(session_id)

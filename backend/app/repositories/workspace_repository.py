@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models.chat_session import ChatSession
+from app.models.chat import Chat
 from app.models.document import Document
 from app.models.source import Source
 from app.models.workspace import Workspace
@@ -70,10 +70,21 @@ class WorkspaceRepository:
         )
         return self.db.scalar(statement) or 0
 
-    def count_chat_sessions(self, workspace_id: uuid.UUID) -> int:
+    def get_primary_by_owner(self, owner_id: uuid.UUID) -> Workspace | None:
+        statement = (
+            select(Workspace)
+            .where(Workspace.owner_id == owner_id)
+            .order_by(Workspace.created_at.asc())
+        )
+        return self.db.scalars(statement).first()
+
+    def count_chats(self, workspace_id: uuid.UUID) -> int:
         statement = (
             select(func.count())
-            .select_from(ChatSession)
-            .where(ChatSession.workspace_id == workspace_id)
+            .select_from(Chat)
+            .where(Chat.workspace_id == workspace_id)
         )
         return self.db.scalar(statement) or 0
+
+    def count_chat_sessions(self, workspace_id: uuid.UUID) -> int:
+        return self.count_chats(workspace_id)

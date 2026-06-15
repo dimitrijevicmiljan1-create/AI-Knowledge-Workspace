@@ -58,7 +58,7 @@ describe("SignupForm", () => {
     expect(register).not.toHaveBeenCalled();
   });
 
-  it("registers, signs in, and redirects to onboarding", async () => {
+  it("registers, signs in, and redirects to chat", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SignupForm />);
 
@@ -74,7 +74,7 @@ describe("SignupForm", () => {
     await waitFor(() => {
       expect(register).toHaveBeenCalled();
       expect(login).toHaveBeenCalled();
-      expect(push).toHaveBeenCalledWith("/onboarding");
+      expect(push).toHaveBeenCalledWith("/chat");
     });
   });
 });

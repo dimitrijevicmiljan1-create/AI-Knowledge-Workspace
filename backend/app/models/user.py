@@ -9,8 +9,9 @@ from app.db.base import Base
 from app.models.mixins import CreatedAtMixin, UpdatedAtMixin
 
 if TYPE_CHECKING:
-    from app.models.chat_session import ChatSession
+    from app.models.chat import Chat
     from app.models.github_connection import GitHubConnection
+    from app.models.user_settings import UserSettings
     from app.models.workspace import Workspace
 
 
@@ -33,10 +34,16 @@ class User(Base, CreatedAtMixin, UpdatedAtMixin):
         back_populates="owner",
         cascade="all, delete-orphan",
     )
-    chat_sessions: Mapped[list["ChatSession"]] = relationship(
-        "ChatSession",
+    chats: Mapped[list["Chat"]] = relationship(
+        "Chat",
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    settings: Mapped["UserSettings | None"] = relationship(
+        "UserSettings",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
     )
     github_connection: Mapped["GitHubConnection | None"] = relationship(
         "GitHubConnection",

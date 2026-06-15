@@ -8,6 +8,26 @@ const nextConfig: NextConfig = {
         destination: "/signup",
         permanent: true,
       },
+      {
+        source: "/onboarding",
+        destination: "/chat",
+        permanent: false,
+      },
+      {
+        source: "/dashboard",
+        destination: "/chat",
+        permanent: false,
+      },
+      {
+        source: "/github",
+        destination: "/sources",
+        permanent: false,
+      },
+      {
+        source: "/obsidian",
+        destination: "/sources",
+        permanent: false,
+      },
     ];
   },
 };

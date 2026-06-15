@@ -1,5 +1,7 @@
-import { OnboardingForm } from "@/components/auth/onboarding-form";
+import { redirect } from "next/navigation";
+
+import { routes } from "@/lib/routes";
 
 export default function OnboardingPage() {
-  return <OnboardingForm />;
+  redirect(routes.chat);
 }

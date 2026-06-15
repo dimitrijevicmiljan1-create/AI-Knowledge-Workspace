@@ -20,6 +20,19 @@ from app.services.workspace_service import WorkspaceService
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 
 
+@router.get(
+    "/me",
+    response_model=WorkspaceResponse,
+    summary="Get the current user's primary workspace",
+)
+def get_my_workspace(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> WorkspaceResponse:
+    workspace = WorkspaceService(db).get_user_workspace(current_user)
+    return WorkspaceResponse.model_validate(workspace)
+
+
 @router.post(
     "",
     response_model=WorkspaceResponse,

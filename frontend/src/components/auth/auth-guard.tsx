@@ -5,7 +5,6 @@ import { useEffect } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
-import { useWorkspaces } from "@/hooks/use-workspaces";
 import { routes } from "@/lib/routes";
 import { hasStoredSession } from "@/lib/auth-storage";
 
@@ -23,15 +22,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  if (!hasStoredSession()) {
-    return <AuthGuardSkeleton />;
-  }
-
-  if (isLoading) {
-    return <AuthGuardSkeleton />;
-  }
-
-  if (!isAuthenticated) {
+  if (!hasStoredSession() || isLoading || !isAuthenticated) {
     return <AuthGuardSkeleton />;
   }
 
@@ -41,73 +32,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 export function GuestGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
-  const { data: workspaces, isLoading: isWorkspacesLoading } =
-    useWorkspaces(isAuthenticated);
 
   useEffect(() => {
-    if (!isAuthenticated || isWorkspacesLoading) {
-      return;
+    if (isAuthenticated) {
+      router.replace(routes.chat);
     }
-    const destination =
-      workspaces && workspaces.total > 0 ? routes.dashboard : routes.onboarding;
-    router.replace(destination);
-  }, [isAuthenticated, isWorkspacesLoading, router, workspaces]);
+  }, [isAuthenticated, router]);
 
-  if (hasStoredSession() && (isLoading || (isAuthenticated && isWorkspacesLoading))) {
-    return <AuthGuardSkeleton />;
-  }
-
-  if (isAuthenticated) {
-    return <AuthGuardSkeleton />;
-  }
-
-  return children;
-}
-
-export function OnboardingGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
-  const { data: workspaces, isLoading: isWorkspacesLoading } =
-    useWorkspaces(isAuthenticated);
-
-  useEffect(() => {
-    if (!hasStoredSession()) {
-      router.replace(routes.login);
-      return;
-    }
-    if (!isLoading && !isAuthenticated) {
-      router.replace(routes.login);
-      return;
-    }
-    if (
-      isAuthenticated &&
-      !isWorkspacesLoading &&
-      workspaces &&
-      workspaces.total > 0
-    ) {
-      router.replace(routes.dashboard);
-    }
-  }, [
-    isAuthenticated,
-    isLoading,
-    isWorkspacesLoading,
-    router,
-    workspaces,
-  ]);
-
-  if (
-    !hasStoredSession() ||
-    isLoading ||
-    (isAuthenticated && isWorkspacesLoading)
-  ) {
-    return <AuthGuardSkeleton />;
-  }
-
-  if (!isAuthenticated) {
-    return <AuthGuardSkeleton />;
-  }
-
-  if (workspaces && workspaces.total > 0) {
+  if (hasStoredSession() && (isLoading || isAuthenticated)) {
     return <AuthGuardSkeleton />;
   }
 

@@ -1,40 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BookMarked,
-  FolderGit2,
-  LayoutDashboard,
-  MessageSquare,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Layers,
+  MessageSquarePlus,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
-  Layers,
   X,
 } from "lucide-react";
+import { useState } from "react";
 
 import { useSidebar } from "@/components/layout/sidebar-context";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { appNavigation, routes } from "@/lib/routes";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useChats, useCreateChat } from "@/hooks/use-chats";
+import { knowledgeNavigation, routes } from "@/lib/routes";
 import { backdropVariants, sidebarTransition, transitionFast } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-
-const iconMap = {
-  [routes.dashboard]: LayoutDashboard,
-  [routes.chat]: MessageSquare,
-  [routes.sources]: Layers,
-  [routes.github]: FolderGit2,
-  [routes.obsidian]: BookMarked,
-  [routes.settings]: Settings,
-};
 
 const SIDEBAR_WIDTH_EXPANDED = 260;
 const SIDEBAR_WIDTH_COLLAPSED = 68;
 
-function SidebarNav({
+function ChatHistory({
   collapsed,
   onNavigate,
 }: {
@@ -42,54 +36,131 @@ function SidebarNav({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const { data, isLoading } = useChats();
+
+  if (collapsed) {
+    return null;
+  }
 
   return (
-    <nav className="flex flex-col gap-0.5 px-2" aria-label="Application">
-      {!collapsed ? (
-        <p className="mb-2 px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Workspace
-        </p>
-      ) : null}
-      {appNavigation.map((item) => {
-        const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const Icon = iconMap[item.href];
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            title={collapsed ? item.name : undefined}
-            className={cn(
-              "group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-all duration-200",
-              collapsed && "justify-center px-2",
-              isActive
-                ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px_rgba(139,92,246,0.25)]"
-                : "text-text-secondary hover:bg-sidebar-accent hover:text-foreground",
-            )}
-          >
-            <Icon
-              className={cn(
-                "size-4 shrink-0 transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
-              )}
-            />
-            {!collapsed ? (
-              <motion.span
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={transitionFast}
-                className="truncate"
+    <div className="px-2">
+      <p className="mb-2 px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        Chat history
+      </p>
+      {isLoading ? (
+        <div className="space-y-2 px-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      ) : data?.items.length ? (
+        <div className="space-y-0.5">
+          {data.items.map((chat) => {
+            const href = `${routes.chat}/${chat.id}`;
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={chat.id}
+                href={href}
+                onClick={onNavigate}
+                className={cn(
+                  "block truncate rounded-lg px-2.5 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-primary/15 text-primary"
+                    : "text-text-secondary hover:bg-sidebar-accent hover:text-foreground",
+                )}
+                title={chat.title}
               >
+                {chat.title}
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="px-2.5 text-sm text-text-secondary">No chats yet</p>
+      )}
+    </div>
+  );
+}
+
+function KnowledgeNav({
+  collapsed,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(true);
+
+  if (collapsed) {
+    return (
+      <nav className="space-y-0.5 px-2" aria-label="Knowledge">
+        {knowledgeNavigation.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              title={item.name}
+              className={cn(
+                "flex items-center justify-center rounded-lg px-2 py-2 text-sm",
+                isActive
+                  ? "bg-primary/15 text-primary"
+                  : "text-text-secondary hover:bg-sidebar-accent",
+              )}
+            >
+              {item.name === "Documents" ? (
+                <FileText className="size-4" />
+              ) : (
+                <Layers className="size-4" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
+
+  return (
+    <div className="px-2">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="mb-2 flex w-full items-center justify-between px-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+        aria-expanded={open}
+      >
+        Knowledge
+        {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+      </button>
+      {open ? (
+        <nav className="space-y-0.5" aria-label="Knowledge">
+          {knowledgeNavigation.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/15 text-primary"
+                    : "text-text-secondary hover:bg-sidebar-accent hover:text-foreground",
+                )}
+              >
+                {item.name === "Documents" ? (
+                  <FileText className="size-4 shrink-0" />
+                ) : (
+                  <Layers className="size-4 shrink-0" />
+                )}
                 {item.name}
-              </motion.span>
-            ) : null}
-          </Link>
-        );
-      })}
-    </nav>
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
+    </div>
   );
 }
 
@@ -102,7 +173,16 @@ function SidebarContent({
   onNavigate?: () => void;
   showCollapseToggle?: boolean;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { toggleCollapsed } = useSidebar();
+  const createChat = useCreateChat();
+
+  async function handleNewChat() {
+    const chat = await createChat.mutateAsync(undefined);
+    onNavigate?.();
+    router.push(`${routes.chat}/${chat.id}`);
+  }
 
   return (
     <>
@@ -113,7 +193,7 @@ function SidebarContent({
         )}
       >
         {!collapsed ? (
-          <Link href={routes.dashboard} className="flex items-center gap-2.5 px-1">
+          <Link href={routes.chat} className="flex items-center gap-2.5 px-1">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
               AI
             </span>
@@ -121,9 +201,9 @@ function SidebarContent({
           </Link>
         ) : (
           <Link
-            href={routes.dashboard}
+            href={routes.chat}
             className="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground"
-            aria-label="Dashboard"
+            aria-label="Home"
           >
             AI
           </Link>
@@ -144,9 +224,45 @@ function SidebarContent({
           </Button>
         ) : null}
       </div>
+
+      <div className="space-y-3 border-b border-sidebar-border px-2 py-3">
+        <Button
+          type="button"
+          className={cn("w-full", collapsed && "px-0")}
+          size={collapsed ? "icon-sm" : "sm"}
+          onClick={() => void handleNewChat()}
+          disabled={createChat.isPending}
+          aria-label="New chat"
+        >
+          <MessageSquarePlus className="size-4" />
+          {!collapsed ? "New chat" : null}
+        </Button>
+      </div>
+
       <ScrollArea className="flex-1 py-3">
-        <SidebarNav collapsed={collapsed} onNavigate={onNavigate} />
+        <div className="space-y-4">
+          <ChatHistory collapsed={collapsed} onNavigate={onNavigate} />
+          <KnowledgeNav collapsed={collapsed} onNavigate={onNavigate} />
+        </div>
       </ScrollArea>
+
+      <div className="border-t border-sidebar-border p-2">
+        <Link
+          href={routes.settings}
+          onClick={onNavigate}
+          title="Settings"
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+            collapsed && "justify-center px-2",
+            pathname.startsWith(routes.settings)
+              ? "bg-primary/15 text-primary"
+              : "text-text-secondary hover:bg-sidebar-accent hover:text-foreground",
+          )}
+        >
+          <Settings className="size-4 shrink-0" />
+          {!collapsed ? "Settings" : null}
+        </Link>
+      </div>
     </>
   );
 }
