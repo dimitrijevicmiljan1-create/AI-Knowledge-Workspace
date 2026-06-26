@@ -5,7 +5,10 @@ import { useCallback } from "react";
 
 import type { ChatMessage } from "@/components/chat/chat-thread";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
-import { useCreateChat } from "@/hooks/use-chats";
+import {
+  syncChatTitleFromMessage,
+  useCreateChat,
+} from "@/hooks/use-chats";
 
 export const chatMessagesQueryKey = (chatId: string) =>
   ["chat-messages", chatId] as const;
@@ -49,10 +52,11 @@ export function useChatActions(chatId: string | null) {
       }
       return sendChatMessage(chatId, message);
     },
-    onSuccess: () => {
+    onSuccess: (_response, message) => {
       if (!chatId) {
         return;
       }
+      syncChatTitleFromMessage(queryClient, chatId, message);
       queryClient.invalidateQueries({ queryKey: chatMessagesQueryKey(chatId) });
     },
   });
@@ -93,7 +97,8 @@ export function useDraftChatActions() {
       await sendChatMessage(chat.id, trimmed);
       return chat.id;
     },
-    onSuccess: (chatId) => {
+    onSuccess: (chatId, message) => {
+      syncChatTitleFromMessage(queryClient, chatId, message);
       queryClient.invalidateQueries({ queryKey: chatMessagesQueryKey(chatId) });
     },
   });

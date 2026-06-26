@@ -7,6 +7,7 @@ import { CheckCircle2, LogOut, Menu, Bell } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useSidebar } from "@/components/layout/sidebar-context";
+import { BackButton } from "@/components/layout/back-button";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
@@ -40,16 +41,19 @@ export function Header() {
 
   return (
     <header className="glass-nav sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 px-3 sm:h-16 sm:gap-4 sm:px-5">
-      {isMobile ? (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open sidebar"
-        >
-          <Menu className="size-4" />
-        </Button>
-      ) : null}
+      <div className="flex items-center gap-1">
+        {isMobile ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open sidebar"
+          >
+            <Menu className="size-4" />
+          </Button>
+        ) : null}
+        <BackButton />
+      </div>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
         <Button

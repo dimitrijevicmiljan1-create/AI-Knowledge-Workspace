@@ -22,6 +22,7 @@ from app.schemas.upload import (
     WorkspaceFileResponse,
 )
 from app.services.checksum import compute_bytes_checksum
+from app.services.document_indexing_service import DocumentIndexingService
 from app.services.file_validator import validate_upload_file
 from app.storage.manager import StorageManager, get_storage_manager
 
@@ -33,6 +34,7 @@ class FileUploadService:
         self.document_repository = DocumentRepository(db)
         self.source_repository = SourceRepository(db)
         self.workspace_repository = WorkspaceRepository(db)
+        self.document_indexing_service = DocumentIndexingService(db)
 
     async def upload_file(self, user: User, workspace_id: uuid.UUID, file: UploadFile) -> FileUploadResponse:
         self._ensure_workspace_owner(user, workspace_id)
@@ -45,6 +47,11 @@ class FileUploadService:
                     "errors": [error.model_dump() for error in result.errors],
                 },
             )
+        if result.document_id is not None and result.status in {
+            UploadStatus.created,
+            UploadStatus.skipped,
+        }:
+            self._maybe_auto_index(user, result.document_id)
         return FileUploadResponse(file=result)
 
     async def upload_multiple(
@@ -56,7 +63,13 @@ class FileUploadService:
         self._ensure_workspace_owner(user, workspace_id)
         results: list[FileUploadResult] = []
         for upload in files:
-            results.append(await self._process_upload(workspace_id, upload))
+            result = await self._process_upload(workspace_id, upload)
+            results.append(result)
+            if result.document_id is not None and result.status in {
+                UploadStatus.created,
+                UploadStatus.skipped,
+            }:
+                self._maybe_auto_index(user, result.document_id)
 
         uploaded = sum(1 for result in results if result.status == UploadStatus.created)
         skipped = sum(1 for result in results if result.status == UploadStatus.skipped)
@@ -211,6 +224,11 @@ class FileUploadService:
             size=int(metadata.get("size", 0)),
             uploaded_at=uploaded_at,
         )
+
+    def _maybe_auto_index(self, user: User, document_id: uuid.UUID) -> None:
+        if not self.document_indexing_service.should_auto_index(user):
+            return
+        self.document_indexing_service.index_document(user, document_id)
 
     def _ensure_workspace_owner(self, user: User, workspace_id: uuid.UUID) -> None:
         workspace = self.workspace_repository.get_by_id(workspace_id)
