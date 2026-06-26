@@ -5,6 +5,7 @@ import {
   chatsQueryKey,
   prependChatToCache,
   removeChatFromCache,
+  syncChatTitleFromMessage,
 } from "@/hooks/use-chats";
 import type { ChatListResponse } from "@/lib/api/types";
 
@@ -63,5 +64,26 @@ describe("use-chats cache helpers", () => {
     expect(updated?.items).toHaveLength(1);
     expect(updated?.items[0]?.id).toBe("chat-1");
     expect(updated?.total).toBe(1);
+  });
+
+  it("updates the sidebar title from the first user message", () => {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData<ChatListResponse>(chatsQueryKey, {
+      items: [
+        {
+          id: "chat-1",
+          workspace_id: "ws-1",
+          title: "New chat",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+      total: 1,
+    });
+
+    syncChatTitleFromMessage(queryClient, "chat-1", "Upload pipeline");
+
+    const updated = queryClient.getQueryData<ChatListResponse>(chatsQueryKey);
+    expect(updated?.items[0]?.title).toBe("Upload pipeline");
   });
 });

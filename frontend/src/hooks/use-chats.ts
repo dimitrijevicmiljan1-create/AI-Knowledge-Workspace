@@ -14,8 +14,10 @@ import {
 } from "@/lib/api/chat";
 import type { ChatCreateResponse, ChatListResponse } from "@/lib/api/types";
 import { hasStoredSession } from "@/lib/auth-storage";
+import { deriveChatTitle } from "@/lib/navigation";
 
 export const chatsQueryKey = ["chats"] as const;
+export const DEFAULT_CHAT_TITLE = "New chat";
 
 const CHATS_STALE_TIME_MS = 5 * 60 * 1000;
 
@@ -39,7 +41,7 @@ export function prependChatToCache(
     const summary = {
       id: chat.id,
       workspace_id: "",
-      title: "New chat",
+      title: DEFAULT_CHAT_TITLE,
       created_at: now,
       updated_at: now,
     };
@@ -70,6 +72,35 @@ export function removeChatFromCache(queryClient: QueryClient, chatId: string) {
   });
 }
 
+export function updateChatTitleInCache(
+  queryClient: QueryClient,
+  chatId: string,
+  title: string,
+) {
+  queryClient.setQueryData<ChatListResponse>(chatsQueryKey, (current) => {
+    if (!current) {
+      return current;
+    }
+
+    return {
+      ...current,
+      items: current.items.map((item) =>
+        item.id === chatId && item.title === DEFAULT_CHAT_TITLE
+          ? { ...item, title, updated_at: new Date().toISOString() }
+          : item,
+      ),
+    };
+  });
+}
+
+export function syncChatTitleFromMessage(
+  queryClient: QueryClient,
+  chatId: string,
+  message: string,
+) {
+  updateChatTitleInCache(queryClient, chatId, deriveChatTitle(message));
+}
+
 export function useCreateChat() {
   const queryClient = useQueryClient();
 
@@ -88,6 +119,7 @@ export function useDeleteChat() {
     mutationFn: (chatId: string) => deleteChat(chatId),
     onSuccess: (_result, chatId) => {
       removeChatFromCache(queryClient, chatId);
+      queryClient.removeQueries({ queryKey: ["chat-messages", chatId] });
     },
   });
 }
