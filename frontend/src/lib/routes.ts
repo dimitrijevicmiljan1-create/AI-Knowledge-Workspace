@@ -3,19 +3,16 @@ export const routes = {
   login: "/login",
   signup: "/signup",
   chat: "/chat",
+  chatNew: "/chat/new",
   documents: "/documents",
   sources: "/sources",
   settings: "/settings",
   // Legacy routes kept for redirects.
-  onboarding: "/chat",
-  dashboard: "/chat",
+  onboarding: "/chat/new",
+  dashboard: "/chat/new",
   github: "/sources",
   obsidian: "/sources",
 } as const;
-
-export function getPostAuthPath(): string {
-  return routes.chat;
-}
 
 export const knowledgeNavigation = [
   { name: "Documents", href: routes.documents },

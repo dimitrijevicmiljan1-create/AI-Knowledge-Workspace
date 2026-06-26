@@ -20,6 +20,10 @@ vi.mock("@/hooks/use-workspaces", () => ({
   }),
 }));
 
+vi.mock("@/lib/chat-navigation", () => ({
+  resolveChatEntryPath: vi.fn().mockResolvedValue("/chat/new"),
+}));
+
 describe("OnboardingForm", () => {
   beforeEach(() => {
     push.mockReset();
@@ -48,7 +52,7 @@ describe("OnboardingForm", () => {
       expect(mutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({ name: "Engineering" }),
       );
-      expect(push).toHaveBeenCalledWith("/chat");
+      expect(push).toHaveBeenCalledWith("/chat/new");
     });
   });
 });

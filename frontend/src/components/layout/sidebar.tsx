@@ -21,6 +21,10 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChats, useCreateChat } from "@/hooks/use-chats";
+import {
+  chatDetailPath,
+  resolveChatHomePath,
+} from "@/lib/chat-navigation";
 import { knowledgeNavigation, routes } from "@/lib/routes";
 import { backdropVariants, sidebarTransition, transitionFast } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -176,12 +180,14 @@ function SidebarContent({
   const router = useRouter();
   const pathname = usePathname();
   const { toggleCollapsed } = useSidebar();
+  const { data: chats } = useChats();
   const createChat = useCreateChat();
+  const homeHref = resolveChatHomePath(chats);
 
   async function handleNewChat() {
     const chat = await createChat.mutateAsync(undefined);
     onNavigate?.();
-    router.push(`${routes.chat}/${chat.id}`);
+    router.push(chatDetailPath(chat.id));
   }
 
   return (
@@ -193,7 +199,7 @@ function SidebarContent({
         )}
       >
         {!collapsed ? (
-          <Link href={routes.chat} className="flex items-center gap-2.5 px-1">
+          <Link href={homeHref} className="flex items-center gap-2.5 px-1">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
               AI
             </span>
@@ -201,7 +207,7 @@ function SidebarContent({
           </Link>
         ) : (
           <Link
-            href={routes.chat}
+            href={homeHref}
             className="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground"
             aria-label="Home"
           >

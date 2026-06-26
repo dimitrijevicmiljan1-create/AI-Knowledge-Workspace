@@ -5,7 +5,7 @@ import { useCallback } from "react";
 
 import type { ChatMessage } from "@/components/chat/chat-thread";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
-import { chatsQueryKey } from "@/hooks/use-chats";
+import { useCreateChat } from "@/hooks/use-chats";
 
 export const chatMessagesQueryKey = (chatId: string) =>
   ["chat-messages", chatId] as const;
@@ -54,7 +54,6 @@ export function useChatActions(chatId: string | null) {
         return;
       }
       queryClient.invalidateQueries({ queryKey: chatMessagesQueryKey(chatId) });
-      queryClient.invalidateQueries({ queryKey: chatsQueryKey });
     },
   });
 
@@ -77,5 +76,42 @@ export function useChatActions(chatId: string | null) {
     sendMessage,
     isSending: sendMutation.isPending,
     sendError: sendMutation.error,
+  };
+}
+
+export function useDraftChatActions() {
+  const queryClient = useQueryClient();
+  const createChatMutation = useCreateChat();
+
+  const sendMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const trimmed = message.trim();
+      if (!trimmed) {
+        throw new Error("Message is required");
+      }
+      const chat = await createChatMutation.mutateAsync(undefined);
+      await sendChatMessage(chat.id, trimmed);
+      return chat.id;
+    },
+    onSuccess: (chatId) => {
+      queryClient.invalidateQueries({ queryKey: chatMessagesQueryKey(chatId) });
+    },
+  });
+
+  const sendFirstMessage = useCallback(
+    async (message: string) => {
+      const trimmed = message.trim();
+      if (!trimmed) {
+        return null;
+      }
+      return sendMutation.mutateAsync(trimmed);
+    },
+    [sendMutation],
+  );
+
+  return {
+    sendFirstMessage,
+    isSending: sendMutation.isPending || createChatMutation.isPending,
+    error: sendMutation.error ?? createChatMutation.error,
   };
 }

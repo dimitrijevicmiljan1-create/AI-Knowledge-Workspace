@@ -21,7 +21,7 @@ const navLinks = [
 export function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
-  const workspaceHref = isAuthenticated ? routes.chat : routes.signup;
+  const workspaceHref = isAuthenticated ? routes.chatNew : routes.signup;
   const showAuthLoading = hasStoredSession() && isLoading;
 
   return (
