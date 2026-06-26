@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
+import { resolveChatEntryPath } from "@/lib/chat-navigation";
 import { routes } from "@/lib/routes";
 import { hasStoredSession } from "@/lib/auth-storage";
 
@@ -34,10 +35,14 @@ export function GuestGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace(routes.chat);
+    if (!isAuthenticated || isLoading) {
+      return;
     }
-  }, [isAuthenticated, router]);
+
+    void resolveChatEntryPath().then((path) => {
+      router.replace(path);
+    });
+  }, [isAuthenticated, isLoading, router]);
 
   if (hasStoredSession() && (isLoading || isAuthenticated)) {
     return <AuthGuardSkeleton />;

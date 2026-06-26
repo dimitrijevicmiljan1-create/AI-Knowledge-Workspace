@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { ChatThread } from "@/components/chat/chat-thread";
@@ -9,10 +8,8 @@ import { NoChatsEmptyState } from "@/components/empty-states";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChatActions, useDraftChatActions } from "@/hooks/use-chat";
-import { useChats } from "@/hooks/use-chats";
-import { getLastChatId, setLastChatId } from "@/lib/chat-storage";
+import { chatDetailPath } from "@/lib/chat-navigation";
 import { getErrorMessage } from "@/lib/errors";
-import { routes } from "@/lib/routes";
 
 type ChatPageContentProps = {
   chatId: string;
@@ -27,10 +24,6 @@ export function ChatPageContent({ chatId }: ChatPageContentProps) {
     isSending,
     sendError,
   } = useChatActions(chatId);
-
-  useEffect(() => {
-    setLastChatId(chatId);
-  }, [chatId]);
 
   if (isLoading) {
     return (
@@ -78,7 +71,7 @@ export function ChatDraftView() {
   async function handleSubmit(message: string) {
     const chatId = await sendFirstMessage(message);
     if (chatId) {
-      router.replace(`${routes.chat}/${chatId}`);
+      router.replace(chatDetailPath(chatId));
     }
   }
 
@@ -99,53 +92,6 @@ export function ChatDraftView() {
         onSubmit={(message) => void handleSubmit(message)}
         isLoading={isSending}
       />
-    </div>
-  );
-}
-
-export function ChatLanding() {
-  const router = useRouter();
-  const { data, isLoading, error } = useChats();
-
-  useEffect(() => {
-    if (isLoading || !data?.items.length) {
-      return;
-    }
-
-    const lastChatId = getLastChatId();
-    const hasLastChat = lastChatId
-      ? data.items.some((chat) => chat.id === lastChatId)
-      : false;
-    const targetChatId = hasLastChat ? lastChatId! : data.items[0].id;
-
-    router.replace(`${routes.chat}/${targetChatId}`);
-  }, [data, isLoading, router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <Skeleton className="h-8 w-48" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center p-6">
-        <ErrorBanner
-          message={getErrorMessage(error, "Unable to load conversations.")}
-        />
-      </div>
-    );
-  }
-
-  if (!data?.items.length) {
-    return <ChatDraftView />;
-  }
-
-  return (
-    <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-      <Skeleton className="h-8 w-48" />
     </div>
   );
 }

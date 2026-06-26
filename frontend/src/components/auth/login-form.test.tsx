@@ -19,6 +19,10 @@ vi.mock("@/hooks/use-auth", () => ({
   }),
 }));
 
+vi.mock("@/lib/chat-navigation", () => ({
+  resolveChatEntryPath: vi.fn().mockResolvedValue("/chat/chat-1"),
+}));
+
 vi.mock("@/lib/api/workspaces", () => ({
   listWorkspaces: vi.fn(),
 }));
@@ -51,7 +55,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalledWith("/chat");
+      expect(push).toHaveBeenCalledWith("/chat/chat-1");
     });
   });
 });

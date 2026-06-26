@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
+import { resolveChatEntryPath } from "@/lib/chat-navigation";
 import { formVariants, transitionDefault } from "@/lib/motion";
-import { getPostAuthPath, routes } from "@/lib/routes";
+import { routes } from "@/lib/routes";
 
 export function LoginForm() {
   const router = useRouter();
@@ -32,7 +33,8 @@ export function LoginForm() {
 
     try {
       await login({ email, password });
-      router.push(getPostAuthPath());
+      const path = await resolveChatEntryPath();
+      router.push(path);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {

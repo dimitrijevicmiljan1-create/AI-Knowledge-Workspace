@@ -4,9 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
 import type { ChatMessage } from "@/components/chat/chat-thread";
-import { createChat, getChatMessages, sendChatMessage } from "@/lib/api/chat";
-import { setLastChatId } from "@/lib/chat-storage";
-import { chatsQueryKey } from "@/hooks/use-chats";
+import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
+import { useCreateChat } from "@/hooks/use-chats";
 
 export const chatMessagesQueryKey = (chatId: string) =>
   ["chat-messages", chatId] as const;
@@ -55,7 +54,6 @@ export function useChatActions(chatId: string | null) {
         return;
       }
       queryClient.invalidateQueries({ queryKey: chatMessagesQueryKey(chatId) });
-      queryClient.invalidateQueries({ queryKey: chatsQueryKey });
     },
   });
 
@@ -83,6 +81,7 @@ export function useChatActions(chatId: string | null) {
 
 export function useDraftChatActions() {
   const queryClient = useQueryClient();
+  const createChatMutation = useCreateChat();
 
   const sendMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -90,14 +89,12 @@ export function useDraftChatActions() {
       if (!trimmed) {
         throw new Error("Message is required");
       }
-      const chat = await createChat();
+      const chat = await createChatMutation.mutateAsync(undefined);
       await sendChatMessage(chat.id, trimmed);
-      setLastChatId(chat.id);
       return chat.id;
     },
     onSuccess: (chatId) => {
       queryClient.invalidateQueries({ queryKey: chatMessagesQueryKey(chatId) });
-      queryClient.invalidateQueries({ queryKey: chatsQueryKey });
     },
   });
 
@@ -114,7 +111,7 @@ export function useDraftChatActions() {
 
   return {
     sendFirstMessage,
-    isSending: sendMutation.isPending,
-    error: sendMutation.error,
+    isSending: sendMutation.isPending || createChatMutation.isPending,
+    error: sendMutation.error ?? createChatMutation.error,
   };
 }

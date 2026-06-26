@@ -17,8 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateWorkspace } from "@/hooks/use-workspaces";
+import { resolveChatEntryPath } from "@/lib/chat-navigation";
 import { formVariants, transitionDefault } from "@/lib/motion";
-import { routes } from "@/lib/routes";
 
 export function OnboardingForm() {
   const router = useRouter();
@@ -42,7 +42,8 @@ export function OnboardingForm() {
         name: trimmedName,
         description: description.trim() || undefined,
       });
-      router.push(routes.chat);
+      const path = await resolveChatEntryPath();
+      router.push(path);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {

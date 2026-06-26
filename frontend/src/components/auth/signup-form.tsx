@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
+import { resolveChatEntryPath } from "@/lib/chat-navigation";
 import { formVariants, transitionDefault } from "@/lib/motion";
 import { routes } from "@/lib/routes";
 
@@ -52,7 +53,8 @@ export function SignupForm() {
         full_name: name.trim() || undefined,
       });
       await login({ email, password });
-      router.push(routes.chat);
+      const path = await resolveChatEntryPath();
+      router.push(path);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {

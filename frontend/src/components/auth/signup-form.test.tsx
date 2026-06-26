@@ -22,6 +22,10 @@ vi.mock("@/hooks/use-auth", () => ({
   }),
 }));
 
+vi.mock("@/lib/chat-navigation", () => ({
+  resolveChatEntryPath: vi.fn().mockResolvedValue("/chat/new"),
+}));
+
 describe("SignupForm", () => {
   beforeEach(() => {
     push.mockReset();
@@ -74,7 +78,7 @@ describe("SignupForm", () => {
     await waitFor(() => {
       expect(register).toHaveBeenCalled();
       expect(login).toHaveBeenCalled();
-      expect(push).toHaveBeenCalledWith("/chat");
+      expect(push).toHaveBeenCalledWith("/chat/new");
     });
   });
 });
