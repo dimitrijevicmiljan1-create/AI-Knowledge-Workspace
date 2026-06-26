@@ -1,6 +1,7 @@
 import { apiRequest } from "@/lib/api/client";
 import type { TokenResponse, User } from "@/lib/api/types";
 import { clearTokens, setTokens } from "@/lib/auth-storage";
+import { clearLastChatId } from "@/lib/chat-storage";
 
 export type LoginPayload = {
   email: string;
@@ -37,4 +38,5 @@ export async function getCurrentUser(): Promise<User> {
 
 export function logoutUser(): void {
   clearTokens();
+  clearLastChatId();
 }

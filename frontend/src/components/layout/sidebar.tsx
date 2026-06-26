@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChats, useCreateChat } from "@/hooks/use-chats";
+import { setLastChatId } from "@/lib/chat-storage";
 import { knowledgeNavigation, routes } from "@/lib/routes";
 import { backdropVariants, sidebarTransition, transitionFast } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -180,6 +181,7 @@ function SidebarContent({
 
   async function handleNewChat() {
     const chat = await createChat.mutateAsync(undefined);
+    setLastChatId(chat.id);
     onNavigate?.();
     router.push(`${routes.chat}/${chat.id}`);
   }
