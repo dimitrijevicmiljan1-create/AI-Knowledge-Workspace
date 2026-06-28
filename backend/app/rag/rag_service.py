@@ -138,10 +138,12 @@ class RAGService:
         )
 
         logger.info(
-            "Chat retrieval workspace_id=%s raw_hits=%d query=%r",
+            "Chat retrieval workspace_id=%s raw_hits=%d query=%r hit_sources=%s hit_paths=%s",
             chat.workspace_id,
             search_response.total_results,
             retrieval_query,
+            [result.source_type for result in search_response.results[:5]],
+            [result.file_path or result.document_path for result in search_response.results[:5]],
         )
 
         response = self._generate_response(
@@ -191,10 +193,12 @@ class RAGService:
         retrieved_chunks = self._to_retrieved_chunks(context.chunks)
 
         logger.info(
-            "Chat context built workspace_id=%s context_chunks=%d filtered_from=%d",
+            "Chat context built workspace_id=%s context_chunks=%d filtered_from=%d chunk_sources=%s chunk_titles=%s",
             workspace_id,
             len(context.chunks),
             len(search_response_results),
+            [chunk.source_type for chunk in context.chunks[:5]],
+            [chunk.document_title for chunk in context.chunks[:5]],
         )
 
         if context.is_empty:

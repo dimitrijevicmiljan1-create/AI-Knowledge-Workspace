@@ -140,12 +140,19 @@ class ObsidianSyncService:
 
             stats.markdown_files_discovered = len(indexable_files)
             logger.info(
-                "Obsidian sync vault_id=%s discovered=%d indexable=%d (from %d uploaded)",
+                "Obsidian sync vault_id=%s discovered=%d indexable=%d (from %d uploaded) paths=%s",
                 vault_id,
                 len(markdown_candidates),
                 len(indexable_files),
                 len(files),
+                [path for path, _ in indexable_files[:10]],
             )
+
+            if len(files) > 0 and len(indexable_files) == 0:
+                raise RuntimeError(
+                    "Uploaded markdown files were found but none were indexable after filtering. "
+                    "Check that notes are .md files outside .obsidian/, .git/, and .trash/ folders."
+                )
 
             remote_paths = {path for path, _ in indexable_files}
             existing_documents = {
@@ -298,6 +305,15 @@ class ObsidianSyncService:
 
         embedding_service.embed_document(user, document.id)
         embeddings_stored = self.embedding_repository.count_by_document(document.id)
+
+        logger.info(
+            "Obsidian indexed note vault_id=%s path=%s title=%r chunks=%d embeddings=%d",
+            vault.id,
+            relative_path,
+            parsed.title,
+            chunks_after,
+            embeddings_stored,
+        )
 
         if chunks_after > 0 and embeddings_stored == 0:
             raise RuntimeError(

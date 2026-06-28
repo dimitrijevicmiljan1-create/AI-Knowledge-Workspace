@@ -33,9 +33,11 @@ export async function syncObsidianVault(
   files: File[],
 ): Promise<ObsidianVaultSyncResponse> {
   const formData = new FormData();
+  const relativePaths = files.map(
+    (file) => file.webkitRelativePath || file.name,
+  );
+  formData.append("relative_paths_json", JSON.stringify(relativePaths));
   for (const file of files) {
-    const relativePath = file.webkitRelativePath || file.name;
-    formData.append("relative_paths", relativePath);
     formData.append("files", file, file.name);
   }
   return apiUpload<ObsidianVaultSyncResponse>(

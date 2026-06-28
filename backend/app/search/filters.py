@@ -57,12 +57,13 @@ class SearchFilters:
             date_to=self.date_to,
         )
 
-    def with_source_ids(self, source_ids: list[UUID]) -> "SearchFilters":
+    def with_metadata_source(self, metadata_source: str) -> "SearchFilters":
         return SearchFilters(
             workspace_id=self.workspace_id,
             source_id=self.source_id,
-            source_ids=tuple(source_ids),
+            source_ids=self.source_ids,
             document_id=self.document_id,
+            metadata_source=metadata_source,
             date_from=self.date_from,
             date_to=self.date_to,
         )

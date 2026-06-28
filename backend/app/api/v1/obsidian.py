@@ -1,6 +1,7 @@
+import json
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_active_user
@@ -13,10 +14,49 @@ from app.schemas.obsidian import (
     ObsidianVaultListResponse,
     ObsidianVaultResponse,
     ObsidianVaultSyncResponse,
+    ObsidianVectorStoreDebugResponse,
 )
 from app.services.obsidian_service import ObsidianService
 
 router = APIRouter(prefix="/obsidian", tags=["obsidian"])
+
+
+def _resolve_relative_paths(
+    *,
+    uploads: list[UploadFile],
+    relative_paths: list[str],
+    relative_paths_json: str | None,
+) -> list[str]:
+    if relative_paths_json:
+        try:
+            parsed = json.loads(relative_paths_json)
+        except json.JSONDecodeError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="relative_paths_json must be a JSON array of strings",
+            ) from error
+        if not isinstance(parsed, list) or not all(isinstance(item, str) for item in parsed):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="relative_paths_json must be a JSON array of strings",
+            )
+        ordered_paths = parsed
+        if len(ordered_paths) != len(uploads):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    f"Path count ({len(ordered_paths)}) must match uploaded file count ({len(uploads)})"
+                ),
+            )
+        return ordered_paths
+
+    ordered_paths: list[str] = []
+    for index, upload in enumerate(uploads):
+        if index < len(relative_paths):
+            ordered_paths.append(relative_paths[index])
+        else:
+            ordered_paths.append(upload.filename or "note.md")
+    return ordered_paths
 
 
 @router.get(
@@ -55,15 +95,33 @@ async def sync_obsidian_vault(
     vault_id: UUID,
     files: list[UploadFile] = File(..., description="Markdown files from the vault folder"),
     relative_paths: list[str] = Form(default=[]),
+    relative_paths_json: str | None = Form(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> ObsidianVaultSyncResponse:
+    ordered_paths = _resolve_relative_paths(
+        uploads=files,
+        relative_paths=relative_paths,
+        relative_paths_json=relative_paths_json,
+    )
     file_payloads: list[tuple[str, bytes]] = []
     for index, upload in enumerate(files):
         content = await upload.read()
-        relative_path = relative_paths[index] if index < len(relative_paths) else (upload.filename or "note.md")
-        file_payloads.append((relative_path, content))
+        file_payloads.append((ordered_paths[index], content))
     return ObsidianService(db).start_sync(current_user, vault_id, file_payloads)
+
+
+@router.get(
+    "/vector-store",
+    response_model=ObsidianVectorStoreDebugResponse,
+    summary="Inspect Obsidian vector store contents for a workspace",
+)
+def get_obsidian_vector_store(
+    workspace_id: UUID = Query(..., description="Workspace identifier"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> ObsidianVectorStoreDebugResponse:
+    return ObsidianService(db).get_vector_store_debug(current_user, workspace_id)
 
 
 @router.get(

@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import HTTPException, status
@@ -25,6 +26,8 @@ from app.schemas.embedding import (
     ReembedDocumentResponse,
 )
 from app.services.embedding_job_tracker import embedding_job_tracker
+
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingService:
@@ -210,6 +213,12 @@ class EmbeddingService:
             estimated_tokens = sum(chunk.token_count or 0 for chunk in chunks_to_embed)
             status_value = EmbeddingJobStatus.completed
             embedding_job_tracker.set_status(job_key, status_value)
+            logger.info(
+                "Embeddings stored document_id=%s chunks_embedded=%d model=%s",
+                document.id,
+                chunks_embedded,
+                self.provider.model_name,
+            )
         except (OpenAIClientError, EmbeddingDimensionError) as error:
             chunks_failed = len(chunks_to_embed)
             status_value = EmbeddingJobStatus.failed
