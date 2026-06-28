@@ -12,8 +12,10 @@ class SearchHit:
     similarity_score: float
     source_id: UUID
     workspace_id: UUID
+    source_type: str | None = None
     repository_name: str | None = None
     file_path: str | None = None
+    vault_name: str | None = None
 
 
 def normalize_scores(hits: list[SearchHit]) -> list[SearchHit]:
@@ -34,8 +36,10 @@ def normalize_scores(hits: list[SearchHit]) -> list[SearchHit]:
                 similarity_score=1.0,
                 source_id=hit.source_id,
                 workspace_id=hit.workspace_id,
+                source_type=hit.source_type,
                 repository_name=hit.repository_name,
                 file_path=hit.file_path,
+                vault_name=hit.vault_name,
             )
             for hit in hits
         ]
@@ -53,8 +57,10 @@ def normalize_scores(hits: list[SearchHit]) -> list[SearchHit]:
                 similarity_score=round(normalized_score, 6),
                 source_id=hit.source_id,
                 workspace_id=hit.workspace_id,
+                source_type=hit.source_type,
                 repository_name=hit.repository_name,
                 file_path=hit.file_path,
+                vault_name=hit.vault_name,
             )
         )
     return normalized

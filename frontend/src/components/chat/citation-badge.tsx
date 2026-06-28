@@ -7,6 +7,8 @@ export type Citation = {
   documentTitle: string;
   filePath?: string | null;
   repositoryName?: string | null;
+  vaultName?: string | null;
+  sourceType?: string | null;
 };
 
 export function CitationBadge({
@@ -26,6 +28,7 @@ export function CitationBadge({
       title={
         citation.filePath ??
         citation.repositoryName ??
+        citation.vaultName ??
         citation.documentTitle
       }
     >

@@ -51,10 +51,22 @@ class PromptBuilder:
         else:
             entries = []
             for index, chunk in enumerate(context.chunks, start=1):
+                source_label = chunk.source_type or "unknown"
+                location_parts = []
+                if chunk.repository_name:
+                    location_parts.append(f"Repository: {chunk.repository_name}")
+                if chunk.vault_name:
+                    location_parts.append(f"Vault: {chunk.vault_name}")
+                if chunk.file_path:
+                    location_parts.append(f"Path: {chunk.file_path}")
+                location_line = " | ".join(location_parts) if location_parts else "Path: unavailable"
+
                 entries.append(
                     "\n".join(
                         [
                             f"[{index}] Title: {chunk.document_title}",
+                            f"Source: {source_label}",
+                            location_line,
                             f"Source ID: {chunk.source_id}",
                             f"Document ID: {chunk.document_id}",
                             f"Chunk ID: {chunk.chunk_id}",

@@ -50,6 +50,8 @@ export function mapApiCitation(citation: ApiCitation): Citation {
     documentTitle: citation.document_title,
     filePath: citation.file_path,
     repositoryName: citation.repository_name,
+    vaultName: citation.vault_name,
+    sourceType: citation.source_type,
   };
 }
 

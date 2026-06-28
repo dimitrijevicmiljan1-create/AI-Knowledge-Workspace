@@ -17,6 +17,7 @@ from app.schemas.search import SearchRequest, SearchResponse, SearchResult, Sear
 from app.search.filters import SearchFilters
 from app.search.ranking import SearchHit
 from app.search.vector_search import VectorSearchEngine
+from app.services.retrieval_source_service import RetrievalSourceService
 
 
 class SearchService:
@@ -32,6 +33,7 @@ class SearchService:
         self.workspace_repository = WorkspaceRepository(db)
         self.source_repository = SourceRepository(db)
         self.document_repository = DocumentRepository(db)
+        self.retrieval_source_service = RetrievalSourceService(db)
 
     def search_workspace(
         self,
@@ -41,6 +43,8 @@ class SearchService:
     ) -> SearchResponse:
         self._ensure_workspace_owner(user, workspace_id)
         filters = self._build_filters(search_in).apply_workspace(workspace_id)
+        retrieval_source_ids = self.retrieval_source_service.list_retrieval_source_ids(workspace_id)
+        filters = filters.with_source_ids(retrieval_source_ids)
         return self._execute_search(
             user=user,
             workspace_id=workspace_id,
@@ -114,6 +118,8 @@ class SearchService:
 
         effective_top_k = self._resolve_top_k(top_k)
         filters = SearchFilters(workspace_id=source.workspace_id)
+        retrieval_source_ids = self.retrieval_source_service.list_retrieval_source_ids(source.workspace_id)
+        filters = filters.with_source_ids(retrieval_source_ids)
         hits = self.vector_search.similar_to_chunk(
             chunk_id,
             filters=filters,
@@ -185,8 +191,10 @@ class SearchService:
             similarity_score=hit.similarity_score,
             source_id=hit.source_id,
             workspace_id=hit.workspace_id,
+            source_type=hit.source_type,
             repository_name=hit.repository_name,
             file_path=hit.file_path,
+            vault_name=hit.vault_name,
         )
 
     def _get_owned_source(self, user: User, source_id: uuid.UUID) -> Source:

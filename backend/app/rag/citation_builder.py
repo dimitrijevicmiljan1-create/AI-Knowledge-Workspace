@@ -14,6 +14,8 @@ class CitationBuilder:
                 document_title=chunk.document_title,
                 file_path=chunk.file_path,
                 repository_name=chunk.repository_name,
+                vault_name=chunk.vault_name,
+                source_type=chunk.source_type,
             )
             for chunk in context.chunks
         ]

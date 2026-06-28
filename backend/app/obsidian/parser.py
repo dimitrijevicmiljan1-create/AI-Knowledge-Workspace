@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import PurePosixPath
+import uuid
 
 
 @dataclass(frozen=True)
@@ -33,9 +34,21 @@ class ObsidianNoteParser:
             vault_name=vault_name,
         )
 
-    def build_document_metadata(self, parsed: ParsedObsidianNote, *, content_checksum: str) -> dict:
+    def build_document_metadata(
+        self,
+        parsed: ParsedObsidianNote,
+        *,
+        content_checksum: str,
+        workspace_id: uuid.UUID,
+        vault_id: uuid.UUID,
+    ) -> dict:
         return {
+            "source": "obsidian",
             "source_type": "obsidian",
+            "workspace_id": str(workspace_id),
+            "vault_id": str(vault_id),
+            "path": parsed.path,
+            "title": parsed.title,
             "vault_name": parsed.vault_name,
             "relative_path": parsed.path,
             "file_name": parsed.file_name,
