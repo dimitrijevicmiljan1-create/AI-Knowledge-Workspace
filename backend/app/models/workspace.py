@@ -11,6 +11,7 @@ from app.models.mixins import CreatedAtMixin, UpdatedAtMixin
 if TYPE_CHECKING:
     from app.models.chat import Chat
     from app.models.github_repository import GitHubRepository
+    from app.models.obsidian_vault import ObsidianVault
     from app.models.source import Source
     from app.models.user import User
 
@@ -45,6 +46,11 @@ class Workspace(Base, CreatedAtMixin, UpdatedAtMixin):
     )
     github_repositories: Mapped[list["GitHubRepository"]] = relationship(
         "GitHubRepository",
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+    obsidian_vaults: Mapped[list["ObsidianVault"]] = relationship(
+        "ObsidianVault",
         back_populates="workspace",
         cascade="all, delete-orphan",
     )

@@ -13,6 +13,7 @@ from app.models.mixins import CreatedAtMixin, UpdatedAtMixin
 if TYPE_CHECKING:
     from app.models.document import Document
     from app.models.github_repository import GitHubRepository
+    from app.models.obsidian_vault import ObsidianVault
     from app.models.workspace import Workspace
 
 
@@ -65,6 +66,11 @@ class Source(Base, CreatedAtMixin, UpdatedAtMixin):
     )
     github_repository: Mapped["GitHubRepository | None"] = relationship(
         "GitHubRepository",
+        back_populates="source",
+        uselist=False,
+    )
+    obsidian_vault: Mapped["ObsidianVault | None"] = relationship(
+        "ObsidianVault",
         back_populates="source",
         uselist=False,
     )

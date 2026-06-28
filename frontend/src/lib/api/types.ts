@@ -186,6 +186,54 @@ export type GitHubSyncJob = {
   created_at: string;
 };
 
+export type ObsidianVaultSyncStatus =
+  | "pending"
+  | "syncing"
+  | "ready"
+  | "failed";
+
+export type ObsidianSyncJobStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export type ObsidianVault = {
+  id: string;
+  workspace_id: string;
+  source_id: string;
+  vault_name: string;
+  last_synced_at: string | null;
+  sync_status: ObsidianVaultSyncStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ObsidianVaultListResponse = {
+  items: ObsidianVault[];
+  total: number;
+};
+
+export type ObsidianVaultSyncResponse = {
+  job_id: string;
+  vault_id: string;
+  status: ObsidianSyncJobStatus;
+};
+
+export type ObsidianSyncJob = {
+  id: string;
+  vault_id: string;
+  status: ObsidianSyncJobStatus;
+  started_at: string | null;
+  completed_at: string | null;
+  files_scanned: number;
+  documents_created: number;
+  documents_updated: number;
+  documents_deleted: number;
+  error_message: string | null;
+  created_at: string;
+};
+
 export type ApiCitation = {
   chunk_id: string;
   document_id: string;

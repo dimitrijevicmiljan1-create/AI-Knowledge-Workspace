@@ -7,6 +7,8 @@ from app.models.embedding import Embedding
 from app.models.github_connection import GitHubConnection
 from app.models.github_repository import GitHubRepository, GitHubRepositorySyncStatus
 from app.models.github_sync_job import GitHubSyncJob, GitHubSyncJobStatus
+from app.models.obsidian_sync_job import ObsidianSyncJob, ObsidianSyncJobStatus
+from app.models.obsidian_vault import ObsidianVault, ObsidianVaultSyncStatus
 from app.models.search_history import SearchHistory
 from app.models.source import Source, SourceStatus, SourceType
 from app.models.user import User
@@ -26,6 +28,10 @@ __all__ = [
     "GitHubRepositorySyncStatus",
     "GitHubSyncJob",
     "GitHubSyncJobStatus",
+    "ObsidianSyncJob",
+    "ObsidianSyncJobStatus",
+    "ObsidianVault",
+    "ObsidianVaultSyncStatus",
     "MessageRole",
     "SearchHistory",
     "Source",

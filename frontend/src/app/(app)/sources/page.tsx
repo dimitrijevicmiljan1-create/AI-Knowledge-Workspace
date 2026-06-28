@@ -6,6 +6,7 @@ import { GitHubIntegrationPanel } from "@/components/integrations/github-integra
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { IntegrationSection } from "@/components/integrations/integration-section";
 import { LocalDocumentsIntegrationPanel } from "@/components/integrations/local-documents-integration-panel";
+import { ObsidianIntegrationPanel } from "@/components/integrations/obsidian-integration-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/lib/integrations/catalog";
 import { useUserWorkspace } from "@/hooks/use-user-workspace";
 
-type ExpandedIntegration = "github" | "local-documents" | null;
+type ExpandedIntegration = "github" | "local-documents" | "obsidian" | null;
 
 export default function IntegrationsPage() {
   const { isLoading: isWorkspaceLoading } = useUserWorkspace();
@@ -51,6 +52,11 @@ export default function IntegrationsPage() {
           <LocalDocumentsIntegrationPanel
             isExpanded={expandedIntegration === "local-documents"}
             onToggle={() => toggleIntegration("local-documents")}
+          />
+
+          <ObsidianIntegrationPanel
+            isExpanded={expandedIntegration === "obsidian"}
+            onToggle={() => toggleIntegration("obsidian")}
           />
 
           {knowledgeComingSoonIntegrations.map((integration) => (
