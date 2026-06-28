@@ -21,6 +21,8 @@ class RetrievalContextBuilder:
                     similarity_score=result.similarity_score,
                     file_path=result.file_path,
                     repository_name=result.repository_name,
+                    vault_name=result.vault_name,
+                    source_type=result.source_type,
                 )
             )
         return RetrievalContext(chunks=chunks)

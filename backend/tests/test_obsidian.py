@@ -114,9 +114,19 @@ def test_obsidian_note_parser_extracts_title() -> None:
         vault_name="Research",
     )
     assert parsed.title == "Synidox"
-    metadata = ObsidianNoteParser().build_document_metadata(parsed, content_checksum="abc")
+    metadata = ObsidianNoteParser().build_document_metadata(
+        parsed,
+        content_checksum="abc",
+        workspace_id=uuid4(),
+        vault_id=uuid4(),
+    )
+    assert metadata["source"] == "obsidian"
     assert metadata["source_type"] == "obsidian"
     assert metadata["vault_name"] == "Research"
+    assert metadata["path"] == "notes/synidox.md"
+    assert metadata["title"] == "Synidox"
+    assert metadata["workspace_id"]
+    assert metadata["vault_id"]
 
 
 def test_create_and_sync_obsidian_vault(rag_patch, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -188,7 +198,10 @@ def test_create_and_sync_obsidian_vault(rag_patch, monkeypatch: pytest.MonkeyPat
         json={"message": "What did I write about Synidox?"},
     )
     assert message_response.status_code == 200
-    assert "Synidox" in message_response.json()["answer"] or message_response.json()["citations"]
+    payload = message_response.json()
+    assert "Synidox" in payload["answer"] or payload["citations"]
+    if payload["citations"]:
+        assert payload["citations"][0]["source_type"] == "obsidian"
 
 
 def test_list_and_delete_obsidian_vault(rag_patch) -> None:

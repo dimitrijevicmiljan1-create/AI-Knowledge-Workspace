@@ -22,8 +22,10 @@ class SearchResult(BaseModel):
     similarity_score: float = Field(ge=0.0, le=1.0)
     source_id: UUID
     workspace_id: UUID
+    source_type: str | None = None
     repository_name: str | None = None
     file_path: str | None = None
+    vault_name: str | None = None
 
 
 class SearchResponse(BaseModel):

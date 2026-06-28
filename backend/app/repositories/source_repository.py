@@ -51,6 +51,23 @@ class SourceRepository:
         )
         return list(self.db.scalars(statement).all())
 
+    def list_retrieval_ready_by_workspace(
+        self,
+        workspace_id: uuid.UUID,
+        *,
+        source_types: tuple[SourceType, ...],
+    ) -> list[Source]:
+        statement = (
+            select(Source)
+            .where(
+                Source.workspace_id == workspace_id,
+                Source.status == SourceStatus.ready,
+                Source.source_type.in_(source_types),
+            )
+            .order_by(Source.created_at.asc())
+        )
+        return list(self.db.scalars(statement).all())
+
     def update(self, source: Source, **fields: object) -> Source:
         for field, value in fields.items():
             if value is not None:

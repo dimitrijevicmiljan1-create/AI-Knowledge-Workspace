@@ -85,6 +85,8 @@ class Citation(BaseModel):
     document_title: str
     file_path: str | None = None
     repository_name: str | None = None
+    vault_name: str | None = None
+    source_type: str | None = None
 
 
 class RetrievedChunk(BaseModel):

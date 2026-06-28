@@ -25,6 +25,9 @@ class VectorSearchEngine:
         filters: SearchFilters,
         top_k: int,
     ) -> list[SearchHit]:
+        if filters.source_ids is not None and not filters.source_ids:
+            return []
+
         distance_expr = Embedding.vector.cosine_distance(query_vector)
         similarity_expr = (1 - distance_expr).label("similarity_score")
 
@@ -37,6 +40,7 @@ class VectorSearchEngine:
                 Document.document_metadata.label("document_metadata"),
                 Chunk.content.label("chunk_content"),
                 Source.id.label("source_id"),
+                Source.source_type.label("source_type"),
                 Source.workspace_id.label("workspace_id"),
                 similarity_expr,
             )
@@ -60,8 +64,10 @@ class VectorSearchEngine:
                 similarity_score=float(row.similarity_score),
                 source_id=row.source_id,
                 workspace_id=row.workspace_id,
+                source_type=row.source_type.value if row.source_type is not None else None,
                 repository_name=self._extract_repository_name(row.document_metadata),
                 file_path=self._extract_file_path(row.document_metadata, row.document_path),
+                vault_name=self._extract_vault_name(row.document_metadata),
             )
             for row in rows
         ]
@@ -90,6 +96,8 @@ class VectorSearchEngine:
             statement = statement.where(Source.workspace_id == filters.workspace_id)
         if filters.source_id is not None:
             statement = statement.where(Source.id == filters.source_id)
+        elif filters.source_ids is not None:
+            statement = statement.where(Source.id.in_(filters.source_ids))
         if filters.document_id is not None:
             statement = statement.where(Document.id == filters.document_id)
         if filters.date_from is not None:
@@ -108,6 +116,14 @@ class VectorSearchEngine:
         return repository_name
 
     def _extract_file_path(self, metadata: dict | None, document_path: str) -> str | None:
-        if metadata and metadata.get("relative_path"):
-            return str(metadata["relative_path"])
+        if metadata:
+            path = metadata.get("path") or metadata.get("relative_path")
+            if path:
+                return str(path)
         return document_path
+
+    def _extract_vault_name(self, metadata: dict | None) -> str | None:
+        if not metadata:
+            return None
+        vault_name = metadata.get("vault_name")
+        return str(vault_name) if vault_name else None

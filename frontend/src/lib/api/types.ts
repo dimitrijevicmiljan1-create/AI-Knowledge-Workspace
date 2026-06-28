@@ -241,6 +241,8 @@ export type ApiCitation = {
   document_title: string;
   file_path: string | null;
   repository_name: string | null;
+  vault_name?: string | null;
+  source_type?: string | null;
 };
 
 export type ChatSessionCreateResponse = {

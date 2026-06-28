@@ -132,6 +132,7 @@ class ObsidianSyncService:
                     existing_checksum = existing.document_metadata.get("content_checksum")
 
                 if existing is not None and existing_checksum == content_checksum:
+                    embedding_service.embed_document(user, existing.id)
                     continue
 
                 parsed = self.parser.parse(
@@ -142,6 +143,8 @@ class ObsidianSyncService:
                 metadata = self.parser.build_document_metadata(
                     parsed,
                     content_checksum=content_checksum,
+                    workspace_id=vault.workspace_id,
+                    vault_id=vault.id,
                 )
                 metadata["indexed_at"] = datetime.now(UTC).isoformat()
 
