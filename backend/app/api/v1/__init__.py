@@ -7,6 +7,7 @@ from app.api.v1.chunks import router as chunks_router
 from app.api.v1.documents import router as documents_router
 from app.api.v1.embeddings import router as embeddings_router
 from app.api.v1.github import router as github_router
+from app.api.v1.obsidian import router as obsidian_router
 from app.api.v1.search import router as search_router
 from app.api.v1.settings import router as settings_router
 from app.api.v1.sources import router as sources_router
@@ -27,4 +28,5 @@ api_router.include_router(chat_router)
 api_router.include_router(chats_router)
 api_router.include_router(settings_router)
 api_router.include_router(github_router)
+api_router.include_router(obsidian_router)
 api_router.include_router(uploads_router)

@@ -1,5 +1,4 @@
 import {
-  BookMarked,
   Building2,
   Cloud,
   Database,
@@ -114,12 +113,6 @@ export const integrationCategories: IntegrationCategory[] = [
 ];
 
 export const knowledgeComingSoonIntegrations: IntegrationDefinition[] = [
-  comingSoon(
-    "obsidian",
-    "Obsidian",
-    "Sync notes and markdown files from your Obsidian vault.",
-    BookMarked,
-  ),
   comingSoon(
     "notion",
     "Notion",

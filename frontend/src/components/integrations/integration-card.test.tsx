@@ -84,7 +84,6 @@ describe("IntegrationSection", () => {
 describe("integrations catalog", () => {
   it("includes knowledge placeholders and future integration categories", () => {
     expect(knowledgeComingSoonIntegrations.map((item) => item.name)).toEqual([
-      "Obsidian",
       "Notion",
     ]);
     expect(integrationCategories.map((category) => category.title)).toEqual([
