@@ -27,7 +27,7 @@ export function NoSourcesEmptyState() {
       icon={<Layers className="size-6 text-muted-foreground" aria-hidden="true" />}
       title="No sources connected"
       description="Connect documents, GitHub repositories, or Obsidian vaults to build your knowledge base."
-      actionLabel="Browse sources"
+      actionLabel="Browse integrations"
       actionHref={routes.sources}
     />
   );

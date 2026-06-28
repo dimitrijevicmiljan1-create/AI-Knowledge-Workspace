@@ -16,5 +16,5 @@ export const routes = {
 
 export const knowledgeNavigation = [
   { name: "Documents", href: routes.documents },
-  { name: "Sources", href: routes.sources },
+  { name: "Integrations", href: routes.sources },
 ] as const;

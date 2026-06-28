@@ -1,47 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
-import {
-  GitHubConnectPanel,
-  RepositoryDiscovery,
-  TrackedRepositories,
-} from "@/components/github/github-panels";
-import { ObsidianComingSoon } from "@/components/obsidian/obsidian-coming-soon";
+import { GitHubIntegrationPanel } from "@/components/integrations/github-integration-panel";
+import { IntegrationCard } from "@/components/integrations/integration-card";
+import { IntegrationSection } from "@/components/integrations/integration-section";
+import { LocalDocumentsIntegrationPanel } from "@/components/integrations/local-documents-integration-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useAddGitHubRepository,
-  useConnectGitHub,
-  useDeleteGitHubRepository,
-  useDiscoveredRepositories,
-  useGitHubConnection,
-  useSyncGitHubRepository,
-  useTrackedRepositories,
-} from "@/hooks/use-github";
+  integrationCategories,
+  knowledgeComingSoonIntegrations,
+} from "@/lib/integrations/catalog";
 import { useUserWorkspace } from "@/hooks/use-user-workspace";
 
-export default function SourcesPage() {
-  const { data: workspace, isLoading: isWorkspaceLoading } = useUserWorkspace();
-  const connectionQuery = useGitHubConnection();
-  const isConnected = Boolean(connectionQuery.data);
-  const discoveredQuery = useDiscoveredRepositories(isConnected);
-  const trackedQuery = useTrackedRepositories();
-  const connectGitHub = useConnectGitHub();
-  const addRepository = useAddGitHubRepository();
-  const syncRepository = useSyncGitHubRepository();
-  const deleteRepository = useDeleteGitHubRepository();
-  const [syncingRepositoryId, setSyncingRepositoryId] = useState<string | null>(
-    null,
-  );
+type ExpandedIntegration = "github" | "local-documents" | null;
 
-  const trackedRepoIds = useMemo(
-    () =>
-      new Set(
-        (trackedQuery.data ?? []).map((repository) => repository.github_repo_id),
-      ),
-    [trackedQuery.data],
-  );
+export default function IntegrationsPage() {
+  const { isLoading: isWorkspaceLoading } = useUserWorkspace();
+  const [expandedIntegration, setExpandedIntegration] =
+    useState<ExpandedIntegration>(null);
+
+  function toggleIntegration(id: ExpandedIntegration) {
+    setExpandedIntegration((current) => (current === id ? null : id));
+  }
 
   if (isWorkspaceLoading) {
     return (
@@ -53,63 +35,57 @@ export default function SourcesPage() {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="mx-auto max-w-7xl space-y-8">
       <PageHeader
-        title="Sources"
-        description="Connect external knowledge sources to your personal workspace."
+        title="Integrations"
+        description="Connect knowledge sources and services to your personal workspace."
       />
 
-      <GitHubConnectPanel
-        isConnected={isConnected}
-        username={connectionQuery.data?.github_username}
-        connectedAt={connectionQuery.data?.connected_at}
-        isConnecting={connectGitHub.isPending}
-        onConnect={() => connectGitHub.mutate()}
-        connectionError={connectionQuery.error}
-      />
-
-      {isConnected && workspace ? (
-        <>
-          <RepositoryDiscovery
-            repositories={discoveredQuery.data?.items ?? []}
-            trackedRepoIds={trackedRepoIds}
-            isLoading={discoveredQuery.isLoading}
-            isAdding={addRepository.isPending}
-            error={discoveredQuery.error}
-            onAdd={async (repository) => {
-              await addRepository.mutateAsync({
-                workspace_id: workspace.id,
-                github_repo_id: repository.github_repo_id,
-                owner: repository.owner,
-                name: repository.name,
-              });
-            }}
+      <IntegrationSection title="Knowledge" emoji="📚">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <GitHubIntegrationPanel
+            isExpanded={expandedIntegration === "github"}
+            onToggle={() => toggleIntegration("github")}
           />
 
-          <TrackedRepositories
-            repositories={trackedQuery.data ?? []}
-            isLoading={trackedQuery.isLoading}
-            syncingRepositoryId={syncingRepositoryId}
-            error={trackedQuery.error}
-            isRefreshing={trackedQuery.isFetching}
-            onRefresh={() => void trackedQuery.refetch()}
-            onSync={async (repositoryId) => {
-              setSyncingRepositoryId(repositoryId);
-              try {
-                await syncRepository.mutateAsync(repositoryId);
-                await trackedQuery.refetch();
-              } finally {
-                setSyncingRepositoryId(null);
-              }
-            }}
-            onDelete={async (repositoryId) => {
-              await deleteRepository.mutateAsync(repositoryId);
-            }}
+          <LocalDocumentsIntegrationPanel
+            isExpanded={expandedIntegration === "local-documents"}
+            onToggle={() => toggleIntegration("local-documents")}
           />
-        </>
-      ) : null}
 
-      <ObsidianComingSoon />
+          {knowledgeComingSoonIntegrations.map((integration) => (
+            <IntegrationCard
+              key={integration.id}
+              name={integration.name}
+              description={integration.description}
+              icon={integration.icon}
+              status={integration.status}
+              connectLabel="Connect"
+            />
+          ))}
+        </div>
+      </IntegrationSection>
+
+      {integrationCategories.map((category) => (
+        <IntegrationSection
+          key={category.id}
+          title={category.title}
+          emoji={category.emoji}
+        >
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {category.integrations.map((integration) => (
+              <IntegrationCard
+                key={integration.id}
+                name={integration.name}
+                description={integration.description}
+                icon={integration.icon}
+                status={integration.status}
+                connectLabel="Connect"
+              />
+            ))}
+          </div>
+        </IntegrationSection>
+      ))}
     </section>
   );
 }
