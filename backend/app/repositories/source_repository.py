@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.chunk import Chunk
 from app.models.document import Document
+from app.models.embedding import Embedding
 from app.models.source import Source, SourceStatus, SourceType
 
 
@@ -65,6 +66,27 @@ class SourceRepository:
                 Source.source_type.in_(source_types),
             )
             .order_by(Source.created_at.asc())
+        )
+        return list(self.db.scalars(statement).all())
+
+    def list_searchable_source_ids(
+        self,
+        workspace_id: uuid.UUID,
+        *,
+        source_types: tuple[SourceType, ...],
+    ) -> list[uuid.UUID]:
+        """Sources that have at least one embedded chunk and are eligible for retrieval."""
+        statement = (
+            select(Source.id)
+            .join(Document, Document.source_id == Source.id)
+            .join(Chunk, Chunk.document_id == Document.id)
+            .join(Embedding, Embedding.chunk_id == Chunk.id)
+            .where(
+                Source.workspace_id == workspace_id,
+                Source.source_type.in_(source_types),
+            )
+            .distinct()
+            .order_by(Source.id.asc())
         )
         return list(self.db.scalars(statement).all())
 

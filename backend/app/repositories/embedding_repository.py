@@ -98,6 +98,35 @@ class EmbeddingRepository:
         )
         return self.db.scalar(statement)
 
+    def count_by_source(self, source_id: uuid.UUID) -> int:
+        statement = (
+            select(func.count())
+            .select_from(Embedding)
+            .join(Chunk, Embedding.chunk_id == Chunk.id)
+            .join(Document, Chunk.document_id == Document.id)
+            .where(Document.source_id == source_id)
+        )
+        return self.db.scalar(statement) or 0
+
+    def count_by_metadata_source(
+        self,
+        workspace_id: uuid.UUID,
+        *,
+        metadata_source: str,
+    ) -> int:
+        statement = (
+            select(func.count())
+            .select_from(Embedding)
+            .join(Chunk, Embedding.chunk_id == Chunk.id)
+            .join(Document, Chunk.document_id == Document.id)
+            .join(Source, Document.source_id == Source.id)
+            .where(
+                Source.workspace_id == workspace_id,
+                Document.document_metadata["source"].astext == metadata_source,
+            )
+        )
+        return self.db.scalar(statement) or 0
+
     def get_total_tokens_embedded_by_workspace(self, workspace_id: uuid.UUID) -> int:
         statement = (
             select(func.coalesce(func.sum(Chunk.token_count), 0))

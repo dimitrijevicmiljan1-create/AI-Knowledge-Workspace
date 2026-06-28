@@ -47,3 +47,16 @@ class ObsidianSyncJobResponse(BaseModel):
     documents_deleted: int
     error_message: str | None
     created_at: datetime
+
+
+class ObsidianIndexStatsResponse(BaseModel):
+    vault_id: UUID
+    source_id: UUID
+    workspace_id: UUID
+    source_status: str
+    markdown_files_discovered: int
+    documents_indexed: int
+    chunks_created: int
+    embeddings_stored: int
+    vector_chunks_for_source: int
+    metadata_source: str = "obsidian"

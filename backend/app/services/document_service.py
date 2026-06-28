@@ -42,6 +42,30 @@ class DocumentService:
 
         if existing is not None and existing.checksum == checksum:
             chunk_count = self.chunk_repository.count_by_document(existing.id)
+            if chunk_count == 0:
+                if ingest_in.metadata:
+                    existing = self.document_repository.update(
+                        existing,
+                        title=ingest_in.title,
+                        document_metadata=ingest_in.metadata,
+                    )
+                chunk_count = self._create_chunks(existing, ingest_in.content)
+                indexed_at = datetime.now(UTC)
+                self._mark_source_ready(source, indexed_at)
+                return DocumentIngestResponse(
+                    document=DocumentResponse.model_validate(existing),
+                    chunk_count=chunk_count,
+                    ingestion_status=IngestionStatus.updated,
+                )
+
+            if ingest_in.metadata is not None or ingest_in.title != existing.title:
+                existing = self.document_repository.update(
+                    existing,
+                    title=ingest_in.title,
+                    document_metadata=ingest_in.metadata
+                    if ingest_in.metadata is not None
+                    else existing.document_metadata,
+                )
             return DocumentIngestResponse(
                 document=DocumentResponse.model_validate(existing),
                 chunk_count=chunk_count,

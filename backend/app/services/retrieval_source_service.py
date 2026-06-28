@@ -21,11 +21,22 @@ class RetrievalSourceService:
         self.source_repository = SourceRepository(db)
 
     def list_retrieval_source_ids(self, workspace_id: uuid.UUID) -> list[uuid.UUID]:
-        sources = self.source_repository.list_retrieval_ready_by_workspace(
+        searchable = self.source_repository.list_searchable_source_ids(
             workspace_id,
             source_types=RETRIEVAL_SOURCE_TYPES,
         )
-        return [source.id for source in sources]
+        if searchable:
+            return searchable
+
+        # Fall back to ready sources so newly synced integrations are included
+        # even before embedding counts are visible in the same transaction.
+        return [
+            source.id
+            for source in self.source_repository.list_retrieval_ready_by_workspace(
+                workspace_id,
+                source_types=RETRIEVAL_SOURCE_TYPES,
+            )
+        ]
 
     def list_retrieval_sources(self, workspace_id: uuid.UUID) -> list[Source]:
         return self.source_repository.list_retrieval_ready_by_workspace(

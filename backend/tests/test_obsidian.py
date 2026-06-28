@@ -162,14 +162,15 @@ def test_create_and_sync_obsidian_vault(rag_patch, monkeypatch: pytest.MonkeyPat
     sync_response = client.post(
         f"/obsidian/vaults/{vault_id}/sync",
         headers=headers,
+        data=[("relative_paths", "Research/notes/synidox.md")],
         files=[
             (
                 "files",
-                ("Research/notes/synidox.md", io.BytesIO(SYNIDOX_NOTE), "text/markdown"),
+                ("synidox.md", io.BytesIO(SYNIDOX_NOTE), "text/markdown"),
             ),
             (
                 "files",
-                ("Research/.obsidian/config.md", io.BytesIO(b"hidden"), "text/markdown"),
+                ("config.md", io.BytesIO(b"hidden"), "text/markdown"),
             ),
         ],
     )

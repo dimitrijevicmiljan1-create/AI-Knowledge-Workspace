@@ -1,3 +1,4 @@
+import logging
 import time
 import uuid
 
@@ -23,6 +24,8 @@ from app.schemas.chat import (
 from app.schemas.search import SearchRequest
 from app.services.chat_service import ChatService
 from app.services.search_service import SearchService
+
+logger = logging.getLogger(__name__)
 
 
 class RAGService:
@@ -134,6 +137,13 @@ class RAGService:
             SearchRequest(query=retrieval_query, top_k=message_in.top_k),
         )
 
+        logger.info(
+            "Chat retrieval workspace_id=%s raw_hits=%d query=%r",
+            chat.workspace_id,
+            search_response.total_results,
+            retrieval_query,
+        )
+
         response = self._generate_response(
             user=user,
             workspace_id=chat.workspace_id,
@@ -179,6 +189,13 @@ class RAGService:
         context = self.context_builder.build(search_response_results)
         citations = self.citation_builder.build(context)
         retrieved_chunks = self._to_retrieved_chunks(context.chunks)
+
+        logger.info(
+            "Chat context built workspace_id=%s context_chunks=%d filtered_from=%d",
+            workspace_id,
+            len(context.chunks),
+            len(search_response_results),
+        )
 
         if context.is_empty:
             answer = self.NO_CONTEXT_ANSWER

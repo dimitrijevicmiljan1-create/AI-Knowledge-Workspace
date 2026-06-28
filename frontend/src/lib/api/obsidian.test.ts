@@ -5,10 +5,6 @@ import {
   filterMarkdownFiles,
 } from "@/lib/api/obsidian";
 
-function getUploadRelativePath(file: File): string {
-  return file.webkitRelativePath || file.name;
-}
-
 describe("obsidian api helpers", () => {
   it("filters markdown files only", () => {
     const files = [
@@ -26,11 +22,15 @@ describe("obsidian api helpers", () => {
     expect(extractVaultNameFromFiles([file])).toBe("Research");
   });
 
-  it("prefers webkitRelativePath for upload filenames", () => {
+  it("sends relative_paths separately from file basenames", () => {
     const file = new File(["# Note"], "note.md", { type: "text/markdown" });
     Object.defineProperty(file, "webkitRelativePath", {
       value: "Research/notes/note.md",
     });
-    expect(getUploadRelativePath(file)).toBe("Research/notes/note.md");
+    const formData = new FormData();
+    formData.append("relative_paths", file.webkitRelativePath || file.name);
+    formData.append("files", file, file.name);
+    expect(formData.get("relative_paths")).toBe("Research/notes/note.md");
+    expect((formData.get("files") as File).name).toBe("note.md");
   });
 });
