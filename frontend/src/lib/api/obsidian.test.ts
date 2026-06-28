@@ -5,10 +5,6 @@ import {
   filterMarkdownFiles,
 } from "@/lib/api/obsidian";
 
-function getUploadRelativePath(file: File): string {
-  return file.webkitRelativePath || file.name;
-}
-
 describe("obsidian api helpers", () => {
   it("filters markdown files only", () => {
     const files = [
