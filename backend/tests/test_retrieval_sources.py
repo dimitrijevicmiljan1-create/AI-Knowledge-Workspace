@@ -110,10 +110,11 @@ def test_obsidian_source_included_in_workspace_retrieval(provider_patch, monkeyp
     sync_response = client.post(
         f"/obsidian/vaults/{vault_id}/sync",
         headers=headers,
+        data=[("relative_paths", "Retrieval Vault/secret-note.md")],
         files=[
             (
                 "files",
-                ("Retrieval Vault/secret-note.md", io.BytesIO(b"# Secret\n\nOnly in Obsidian."), "text/markdown"),
+                ("secret-note.md", io.BytesIO(b"# Secret\n\nOnly in Obsidian."), "text/markdown"),
             ),
         ],
     )
@@ -127,6 +128,13 @@ def test_obsidian_source_included_in_workspace_retrieval(provider_patch, monkeyp
             break
         time.sleep(0.1)
     assert status_response.json()["status"] == "completed"
+
+    index_stats = client.get(f"/obsidian/vaults/{vault_id}/index-stats", headers=headers)
+    assert index_stats.status_code == 200
+    stats_payload = index_stats.json()
+    assert stats_payload["embeddings_stored"] > 0
+    assert stats_payload["vector_chunks_for_source"] > 0
+    assert stats_payload["metadata_source"] == "obsidian"
 
     db = SessionLocal()
     try:

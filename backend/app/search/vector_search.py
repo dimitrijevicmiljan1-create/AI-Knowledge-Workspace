@@ -100,6 +100,10 @@ class VectorSearchEngine:
             statement = statement.where(Source.id.in_(filters.source_ids))
         if filters.document_id is not None:
             statement = statement.where(Document.id == filters.document_id)
+        if filters.metadata_source is not None:
+            statement = statement.where(
+                Document.document_metadata["source"].astext == filters.metadata_source
+            )
         if filters.date_from is not None:
             statement = statement.where(Chunk.created_at >= filters.date_from)
         if filters.date_to is not None:

@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import HTTPException, status
@@ -18,6 +19,8 @@ from app.search.filters import SearchFilters
 from app.search.ranking import SearchHit
 from app.search.vector_search import VectorSearchEngine
 from app.services.retrieval_source_service import RetrievalSourceService
+
+logger = logging.getLogger(__name__)
 
 
 class SearchService:
@@ -45,6 +48,12 @@ class SearchService:
         filters = self._build_filters(search_in).apply_workspace(workspace_id)
         retrieval_source_ids = self.retrieval_source_service.list_retrieval_source_ids(workspace_id)
         filters = filters.with_source_ids(retrieval_source_ids)
+        logger.info(
+            "Workspace search workspace_id=%s retrieval_sources=%d source_ids=%s",
+            workspace_id,
+            len(retrieval_source_ids),
+            [str(source_id) for source_id in retrieval_source_ids[:5]],
+        )
         return self._execute_search(
             user=user,
             workspace_id=workspace_id,
@@ -154,6 +163,13 @@ class SearchService:
         top_k = self._resolve_top_k(search_in.top_k)
         query_vector = self.provider.generate_embedding(search_in.query)
         hits = self.vector_search.search(query_vector, filters=filters, top_k=top_k)
+        logger.info(
+            "Vector search workspace_id=%s hits=%d top_k=%d query=%r",
+            workspace_id,
+            len(hits),
+            top_k,
+            search_in.query,
+        )
         history = self.search_history_repository.create(
             user_id=user.id,
             workspace_id=workspace_id,

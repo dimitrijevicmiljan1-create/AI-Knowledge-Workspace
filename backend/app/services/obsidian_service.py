@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import HTTPException, status
@@ -8,16 +9,22 @@ from app.models.obsidian_vault import ObsidianVault, ObsidianVaultSyncStatus
 from app.models.source import SourceType
 from app.models.user import User
 from app.obsidian.sync import ObsidianSyncService, ObsidianVaultFile
+from app.repositories.chunk_repository import ChunkRepository
+from app.repositories.document_repository import DocumentRepository
+from app.repositories.embedding_repository import EmbeddingRepository
 from app.repositories.obsidian_vault_repository import ObsidianVaultRepository
 from app.repositories.source_repository import SourceRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.schemas.obsidian import (
+    ObsidianIndexStatsResponse,
     ObsidianSyncJobResponse,
     ObsidianVaultCreateRequest,
     ObsidianVaultListResponse,
     ObsidianVaultResponse,
     ObsidianVaultSyncResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ObsidianService:
@@ -26,6 +33,9 @@ class ObsidianService:
         self.vault_repository = ObsidianVaultRepository(db)
         self.source_repository = SourceRepository(db)
         self.workspace_repository = WorkspaceRepository(db)
+        self.document_repository = DocumentRepository(db)
+        self.chunk_repository = ChunkRepository(db)
+        self.embedding_repository = EmbeddingRepository(db)
         self.sync_service = ObsidianSyncService(db)
 
     def list_vaults(self, user: User, workspace_id: uuid.UUID) -> ObsidianVaultListResponse:
@@ -78,11 +88,42 @@ class ObsidianService:
                 detail="No markdown files found in the selected vault folder",
             )
 
+        logger.info(
+            "Obsidian upload accepted vault_id=%s markdown_files=%d paths=%s",
+            vault_id,
+            len(parsed_files),
+            [item.relative_path for item in parsed_files[:5]],
+        )
+
         job = self.sync_service.start_sync(vault_id, user, parsed_files)
         return ObsidianVaultSyncResponse(
             job_id=job.id,
             vault_id=vault_id,
             status=job.status.value,
+        )
+
+    def get_index_stats(self, user: User, vault_id: uuid.UUID) -> ObsidianIndexStatsResponse:
+        vault = self._get_owned_vault(user, vault_id)
+        source = vault.source
+        documents = self.document_repository.list_by_source(vault.source_id)
+        total_chunks = sum(self.chunk_repository.count_by_document(document.id) for document in documents)
+        embeddings_stored = self.embedding_repository.count_by_source(vault.source_id)
+        vector_chunks = self.embedding_repository.count_by_metadata_source(
+            vault.workspace_id,
+            metadata_source="obsidian",
+        )
+        latest_job = self.sync_service.get_latest_job(vault_id)
+
+        return ObsidianIndexStatsResponse(
+            vault_id=vault.id,
+            source_id=vault.source_id,
+            workspace_id=vault.workspace_id,
+            source_status=source.status.value if source else "unknown",
+            markdown_files_discovered=latest_job.files_scanned if latest_job else 0,
+            documents_indexed=len(documents),
+            chunks_created=total_chunks,
+            embeddings_stored=embeddings_stored,
+            vector_chunks_for_source=vector_chunks,
         )
 
     def get_sync_status(self, user: User, vault_id: uuid.UUID) -> ObsidianSyncJobResponse:
@@ -117,8 +158,8 @@ class ObsidianService:
         vault_name: str,
     ) -> list[ObsidianVaultFile]:
         parsed: list[ObsidianVaultFile] = []
-        for filename, content_bytes in files:
-            if not filename.lower().endswith(".md"):
+        for relative_path, content_bytes in files:
+            if not relative_path.lower().endswith(".md"):
                 continue
 
             try:
@@ -126,8 +167,8 @@ class ObsidianService:
             except UnicodeDecodeError:
                 content = content_bytes.decode("utf-8", errors="replace")
 
-            relative_path = self._normalize_relative_path(filename, vault_name)
-            parsed.append(ObsidianVaultFile(relative_path=relative_path, content=content))
+            normalized_path = self._normalize_relative_path(relative_path, vault_name)
+            parsed.append(ObsidianVaultFile(relative_path=normalized_path, content=content))
         return parsed
 
     def _normalize_relative_path(self, filename: str, vault_name: str) -> str:
