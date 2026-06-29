@@ -205,6 +205,78 @@ def test_create_and_sync_obsidian_vault(rag_patch, monkeypatch: pytest.MonkeyPat
         assert payload["citations"][0]["source_type"] == "obsidian"
 
 
+def test_vault_content_query_retrieves_note_text(rag_patch, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.db.session import SessionLocal
+
+    def run_sync_immediately(self, job_id, vault_id, user_id, files) -> None:
+        db = SessionLocal()
+        try:
+            ObsidianSyncService(db).execute_sync(job_id, vault_id, user_id, files)
+        finally:
+            db.close()
+
+    monkeypatch.setattr(ObsidianSyncService, "_run_sync_job", run_sync_immediately)
+
+    vault_note = b"# Personal Project\n\nMy secret recipe for sourdough bread uses 80% hydration."
+
+    tokens = _register_and_login()
+    headers = _auth_headers(tokens["access_token"])
+    workspace_id = _create_workspace(headers)
+
+    create_response = client.post(
+        "/obsidian/vaults",
+        headers=headers,
+        json={"workspace_id": workspace_id, "vault_name": "Personal"},
+    )
+    vault_id = create_response.json()["id"]
+
+    sync_response = client.post(
+        f"/obsidian/vaults/{vault_id}/sync",
+        headers=headers,
+        data={"relative_paths_json": '["Personal/recipes/sourdough.md"]'},
+        files=[
+            (
+                "files",
+                ("sourdough.md", io.BytesIO(vault_note), "text/markdown"),
+            ),
+        ],
+    )
+    assert sync_response.status_code == 200
+
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        status_response = client.get(f"/obsidian/vaults/{vault_id}/status", headers=headers)
+        assert status_response.status_code == 200
+        if status_response.json()["status"] in {"completed", "failed"}:
+            break
+        time.sleep(0.1)
+    assert status_response.json()["status"] == "completed"
+
+    vector_store = client.get(
+        f"/obsidian/vector-store?workspace_id={workspace_id}",
+        headers=headers,
+    )
+    assert vector_store.status_code == 200
+    vector_payload = vector_store.json()
+    assert vector_payload["total_chunks"] > 0
+    assert vector_payload["sample_chunks"]
+    assert "sourdough" in vector_payload["sample_chunks"][0]["chunk_content"].lower()
+
+    chat_response = client.post("/chats", headers=headers, json={})
+    chat_id = chat_response.json()["id"]
+    message_response = client.post(
+        f"/chats/{chat_id}/messages",
+        headers=headers,
+        json={"message": "What is inside my Obsidian vault?"},
+    )
+    assert message_response.status_code == 200
+    payload = message_response.json()
+    answer = payload["answer"].lower()
+    assert "sourdough" in answer or "hydration" in answer or payload["citations"]
+    if payload["citations"]:
+        assert payload["citations"][0]["source_type"] == "obsidian"
+
+
 def test_list_and_delete_obsidian_vault(rag_patch) -> None:
     tokens = _register_and_login()
     headers = _auth_headers(tokens["access_token"])

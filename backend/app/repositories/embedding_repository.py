@@ -127,6 +127,65 @@ class EmbeddingRepository:
         )
         return self.db.scalar(statement) or 0
 
+    def count_documents_by_metadata_source(
+        self,
+        workspace_id: uuid.UUID,
+        *,
+        metadata_source: str,
+    ) -> int:
+        statement = (
+            select(func.count(func.distinct(Document.id)))
+            .select_from(Document)
+            .join(Source, Document.source_id == Source.id)
+            .where(
+                Source.workspace_id == workspace_id,
+                Document.document_metadata["source"].astext == metadata_source,
+            )
+        )
+        return self.db.scalar(statement) or 0
+
+    def list_sample_chunks_by_metadata_source(
+        self,
+        workspace_id: uuid.UUID,
+        *,
+        metadata_source: str,
+        limit: int = 5,
+    ) -> list[dict]:
+        statement = (
+            select(
+                Chunk.id.label("chunk_id"),
+                Chunk.content.label("chunk_content"),
+                Document.id.label("document_id"),
+                Document.title.label("document_title"),
+                Document.path.label("document_path"),
+                Document.document_metadata.label("document_metadata"),
+                Source.source_type.label("source_type"),
+            )
+            .select_from(Embedding)
+            .join(Chunk, Embedding.chunk_id == Chunk.id)
+            .join(Document, Chunk.document_id == Document.id)
+            .join(Source, Document.source_id == Source.id)
+            .where(
+                Source.workspace_id == workspace_id,
+                Document.document_metadata["source"].astext == metadata_source,
+            )
+            .order_by(Embedding.created_at.asc())
+            .limit(limit)
+        )
+        rows = self.db.execute(statement).all()
+        return [
+            {
+                "chunk_id": row.chunk_id,
+                "document_id": row.document_id,
+                "document_title": row.document_title,
+                "document_path": row.document_path,
+                "chunk_content": row.chunk_content,
+                "metadata": row.document_metadata or {},
+                "source_type": row.source_type.value if row.source_type is not None else None,
+            }
+            for row in rows
+        ]
+
     def get_total_tokens_embedded_by_workspace(self, workspace_id: uuid.UUID) -> int:
         statement = (
             select(func.coalesce(func.sum(Chunk.token_count), 0))

@@ -60,3 +60,22 @@ class ObsidianIndexStatsResponse(BaseModel):
     embeddings_stored: int
     vector_chunks_for_source: int
     metadata_source: str = "obsidian"
+
+
+class ObsidianVectorChunkSample(BaseModel):
+    chunk_id: UUID
+    document_id: UUID
+    document_title: str
+    document_path: str
+    chunk_content: str
+    metadata: dict = Field(default_factory=dict)
+    source_type: str | None = None
+
+
+class ObsidianVectorStoreDebugResponse(BaseModel):
+    workspace_id: UUID
+    metadata_source: str = "obsidian"
+    total_documents: int
+    total_chunks: int
+    sample_chunks: list[ObsidianVectorChunkSample]
+    indexed_paths: list[str] = Field(default_factory=list)

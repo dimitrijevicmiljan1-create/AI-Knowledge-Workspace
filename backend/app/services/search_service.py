@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.models.document import Document
 from app.models.source import Source
 from app.models.user import User
+from app.obsidian.query_intent import is_vault_content_query
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.search_history_repository import SearchHistoryRepository
 from app.repositories.source_repository import SourceRepository
@@ -163,12 +164,29 @@ class SearchService:
         top_k = self._resolve_top_k(search_in.top_k)
         query_vector = self.provider.generate_embedding(search_in.query)
         hits = self.vector_search.search(query_vector, filters=filters, top_k=top_k)
+
+        if is_vault_content_query(search_in.query):
+            vault_filters = filters.with_metadata_source("obsidian")
+            vault_hits = self.vector_search.search(
+                query_vector,
+                filters=vault_filters,
+                top_k=top_k,
+            )
+            hits = self._merge_search_hits(hits, vault_hits, top_k=top_k)
+            logger.info(
+                "Vault content query workspace_id=%s vault_hits=%d merged_hits=%d",
+                workspace_id,
+                len(vault_hits),
+                len(hits),
+            )
+
         logger.info(
-            "Vector search workspace_id=%s hits=%d top_k=%d query=%r",
+            "Vector search workspace_id=%s hits=%d top_k=%d query=%r source_types=%s",
             workspace_id,
             len(hits),
             top_k,
             search_in.query,
+            [hit.source_type for hit in hits[:5]],
         )
         history = self.search_history_repository.create(
             user_id=user.id,
@@ -183,6 +201,21 @@ class SearchService:
             results=[self._to_search_result(hit) for hit in hits],
             search_id=history.id,
         )
+
+    def _merge_search_hits(
+        self,
+        primary: list[SearchHit],
+        secondary: list[SearchHit],
+        *,
+        top_k: int,
+    ) -> list[SearchHit]:
+        """Prefer vault note hits when the user asks about their Obsidian vault."""
+        merged: dict[uuid.UUID, SearchHit] = {}
+        for hit in secondary:
+            merged[hit.chunk_id] = hit
+        for hit in primary:
+            merged.setdefault(hit.chunk_id, hit)
+        return sorted(merged.values(), key=lambda item: item.similarity_score, reverse=True)[:top_k]
 
     def _build_filters(self, search_in: SearchRequest) -> SearchFilters:
         return SearchFilters(

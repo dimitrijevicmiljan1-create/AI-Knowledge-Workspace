@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -10,6 +11,8 @@ from app.models.embedding import Embedding
 from app.models.source import Source
 from app.search.filters import SearchFilters
 from app.search.ranking import SearchHit, rank_hits
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -71,7 +74,20 @@ class VectorSearchEngine:
             )
             for row in rows
         ]
-        return rank_hits(hits)
+        ranked = rank_hits(hits, normalize=False)
+        logger.info(
+            "Vector search hits=%d top_k=%d workspace_id=%s metadata_source=%s source_ids=%s "
+            "top_scores=%s top_source_types=%s top_paths=%s",
+            len(ranked),
+            top_k,
+            filters.workspace_id,
+            filters.metadata_source,
+            [str(source_id) for source_id in (filters.source_ids or ())[:5]],
+            [round(hit.similarity_score, 4) for hit in ranked[:5]],
+            [hit.source_type for hit in ranked[:5]],
+            [hit.file_path or hit.document_path for hit in ranked[:5]],
+        )
+        return ranked
 
     def similar_to_chunk(
         self,

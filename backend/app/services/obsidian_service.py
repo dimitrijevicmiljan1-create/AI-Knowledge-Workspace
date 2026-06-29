@@ -8,6 +8,7 @@ from app.models.obsidian_sync_job import ObsidianSyncJob
 from app.models.obsidian_vault import ObsidianVault, ObsidianVaultSyncStatus
 from app.models.source import SourceType
 from app.models.user import User
+from app.obsidian.filters import should_index_obsidian_path
 from app.obsidian.sync import ObsidianSyncService, ObsidianVaultFile
 from app.repositories.chunk_repository import ChunkRepository
 from app.repositories.document_repository import DocumentRepository
@@ -22,6 +23,8 @@ from app.schemas.obsidian import (
     ObsidianVaultListResponse,
     ObsidianVaultResponse,
     ObsidianVaultSyncResponse,
+    ObsidianVectorChunkSample,
+    ObsidianVectorStoreDebugResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -114,6 +117,16 @@ class ObsidianService:
         )
         latest_job = self.sync_service.get_latest_job(vault_id)
 
+        logger.info(
+            "Obsidian index stats vault_id=%s documents=%d chunks=%d embeddings=%d vector_chunks=%d paths=%s",
+            vault_id,
+            len(documents),
+            total_chunks,
+            embeddings_stored,
+            vector_chunks,
+            [document.path for document in documents[:10]],
+        )
+
         return ObsidianIndexStatsResponse(
             vault_id=vault.id,
             source_id=vault.source_id,
@@ -124,6 +137,59 @@ class ObsidianService:
             chunks_created=total_chunks,
             embeddings_stored=embeddings_stored,
             vector_chunks_for_source=vector_chunks,
+        )
+
+    def get_vector_store_debug(
+        self,
+        user: User,
+        workspace_id: uuid.UUID,
+    ) -> ObsidianVectorStoreDebugResponse:
+        self._ensure_workspace_owner(user, workspace_id)
+        total_documents = self.embedding_repository.count_documents_by_metadata_source(
+            workspace_id,
+            metadata_source="obsidian",
+        )
+        total_chunks = self.embedding_repository.count_by_metadata_source(
+            workspace_id,
+            metadata_source="obsidian",
+        )
+        sample_rows = self.embedding_repository.list_sample_chunks_by_metadata_source(
+            workspace_id,
+            metadata_source="obsidian",
+            limit=5,
+        )
+        documents = [
+            document
+            for document in self.document_repository.list_by_workspace(workspace_id)
+            if (document.document_metadata or {}).get("source") == "obsidian"
+        ]
+        indexed_paths = sorted(document.path for document in documents)
+
+        logger.info(
+            "Obsidian vector store debug workspace_id=%s documents=%d chunks=%d sample_paths=%s",
+            workspace_id,
+            total_documents,
+            total_chunks,
+            indexed_paths,
+        )
+
+        return ObsidianVectorStoreDebugResponse(
+            workspace_id=workspace_id,
+            total_documents=total_documents,
+            total_chunks=total_chunks,
+            sample_chunks=[
+                ObsidianVectorChunkSample(
+                    chunk_id=row["chunk_id"],
+                    document_id=row["document_id"],
+                    document_title=row["document_title"],
+                    document_path=row["document_path"],
+                    chunk_content=row["chunk_content"],
+                    metadata=row["metadata"],
+                    source_type=row["source_type"],
+                )
+                for row in sample_rows
+            ],
+            indexed_paths=indexed_paths,
         )
 
     def get_sync_status(self, user: User, vault_id: uuid.UUID) -> ObsidianSyncJobResponse:
@@ -158,8 +224,11 @@ class ObsidianService:
         vault_name: str,
     ) -> list[ObsidianVaultFile]:
         parsed: list[ObsidianVaultFile] = []
+        skipped: list[str] = []
+
         for relative_path, content_bytes in files:
             if not relative_path.lower().endswith(".md"):
+                skipped.append(f"{relative_path}: not markdown")
                 continue
 
             try:
@@ -168,7 +237,25 @@ class ObsidianService:
                 content = content_bytes.decode("utf-8", errors="replace")
 
             normalized_path = self._normalize_relative_path(relative_path, vault_name)
+            if not content.strip():
+                skipped.append(f"{normalized_path}: empty content")
+                continue
+            if not should_index_obsidian_path(normalized_path):
+                skipped.append(f"{normalized_path}: excluded path")
+                continue
+
             parsed.append(ObsidianVaultFile(relative_path=normalized_path, content=content))
+
+        logger.info(
+            "Obsidian file discovery vault_name=%s markdown_files=%d skipped=%d paths=%s",
+            vault_name,
+            len(parsed),
+            len(skipped),
+            [item.relative_path for item in parsed[:10]],
+        )
+        if skipped:
+            logger.info("Obsidian skipped files (first 10): %s", skipped[:10])
+
         return parsed
 
     def _normalize_relative_path(self, filename: str, vault_name: str) -> str:
